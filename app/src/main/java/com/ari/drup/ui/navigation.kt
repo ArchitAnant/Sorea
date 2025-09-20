@@ -23,6 +23,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ari.drup.ui.screens.ChatScreen
 import com.ari.drup.ui.screens.CommunityPage
+import com.ari.drup.ui.screens.HolderScreen
+import com.ari.drup.ui.screens.HomeScreen
+import com.ari.drup.ui.screens.MainChatScreen
+import com.ari.drup.ui.screens.ProfileScreen
 import com.ari.drup.ui.screens.onboarding.RegisterUserScreen
 import com.ari.drup.ui.screens.onboarding.SignInScreen
 import com.ari.drup.ui.screens.onboarding.WaitingScreen
@@ -50,18 +54,16 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
     var supsRegisterState = vm.successRegistered.collectAsState().value
     NavHost(navController = navHostController, startDestination = Screen.signin.route) {
 
-        composable(route = Screen.communitySetup.route) {
-            CommunityPage({id,title ->
-                chatId = id
-                chatViewModel.chatTitle.value = title
-                Log.d("title",chatViewModel.chatTitle.value)
-                navHostController.navigate(Screen.chatScreen.route)
-            },
-                modifier)
-        }
         composable(route = Screen.chatScreen.route) {
             ChatScreen(chatId, chatTitle = chatViewModel.chatTitle.value,chatViewModel,modifier)
         }
+
+
+        composable(route = Screen.holderScreen.route) {
+            HolderScreen(chatViewModel,navHostController,modifier)
+        }
+
+
         composable(route = Screen.signin.route) {
             SignInScreen({
 
@@ -111,16 +113,30 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
             },modifier)
         }
         composable(route= Screen.onBoardWait.route) {
-            WaitingScreen(vm)
+            WaitingScreen({success->
+                if (success){
+                    navHostController.navigate(Screen.holderScreen.route)
+                }else{
+                    navHostController.navigate(Screen.signin.route)
+                }
+            },vm,modifier)
         }
+
     }
 }
+
+
 
 sealed class Screen(val route:String){
     object homeScreen: Screen(route = "home_screen")
     object communitySetup: Screen(route = "community_screen")
     object chatScreen: Screen(route = "chat_screen")
-    object  signin : Screen(route = "sign_in")
+    object profileScreen: Screen(route = "profile_screen")
+
+    object signin : Screen(route = "sign_in")
     object registerUser : Screen(route = "register_user_screen")
     object onBoardWait : Screen(route = "onboard_wait_screen")
+
+    object holderScreen : Screen(route = "holder_screen")
+
 }

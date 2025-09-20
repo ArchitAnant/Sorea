@@ -15,11 +15,11 @@ import androidx.compose.ui.unit.sp
 import com.ari.drup.regular_font
 
 @Composable
-fun MainChatScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(modifier: Modifier = Modifier) {
     Column(modifier=modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "Chat Screen",
+            text = "Home Screen",
             color = Color.White,
             fontFamily = regular_font,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
@@ -30,6 +30,6 @@ fun MainChatScreen(modifier: Modifier = Modifier) {
 
 @Preview
 @Composable
-private fun MainChatScreenPrev() {
-    MainChatScreen()
+private fun HomeScreenPrev() {
+    HomeScreen()
 }

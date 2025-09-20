@@ -149,7 +149,6 @@ fun RegisterUserScreen(
                                 selectedDate
                             )
                         scope.launch {
-                            snackbarHostState.showSnackbar("Proceeding to Register")
                             val newUser = User(
                                 username,
                                 name,

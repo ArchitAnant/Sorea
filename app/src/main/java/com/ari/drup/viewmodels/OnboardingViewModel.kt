@@ -33,7 +33,8 @@ class OnboardingViewModel (
     private var currUser : User? = null
     val firebaseManager = FirebaseManager()
 
-    val successRegistered = MutableStateFlow(mutableStateOf(regState.waiting)).asStateFlow()
+    private val _successRegistered = MutableStateFlow(mutableStateOf(regState.waiting))
+    val successRegistered = _successRegistered.asStateFlow()
 
     fun setUser(user: User){
         currUser = user;
@@ -52,10 +53,14 @@ class OnboardingViewModel (
                 currentUserEmail = authResult.user?.email
                 Log.d("credential",currentUserEmail.toString())
                 if (currentUserEmail != null) {
+
+                    navHostController.navigate(Screen.onBoardWait.route)
                     if (isUserRegistered(currentUserEmail.toString())){
-                        navigateHomePage()
+                        _successRegistered.value.value = regState.success
+                        navigateHolderPage()
                     }
                     else{
+                        _successRegistered.value.value = regState.waiting
                         Log.d("credential","not registered")
                         registerUserPage()
                     }
@@ -80,8 +85,8 @@ class OnboardingViewModel (
     }
 
 
-    fun navigateHomePage(){
-        navHostController.navigate(Screen.communitySetup.route)
+    fun navigateHolderPage(){
+        navHostController.navigate(Screen.holderScreen.route)
     }
     fun registerUserPage(){
         navHostController.navigate(Screen.registerUser.route)
