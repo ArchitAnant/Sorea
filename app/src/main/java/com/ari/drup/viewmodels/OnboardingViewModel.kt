@@ -30,7 +30,7 @@ class OnboardingViewModel (
     private val navHostController: NavHostController
 ) : ViewModel() {
     var currentUserEmail: String? = null
-    private var currUser : User? = null
+    var currUser : User? = null
     val firebaseManager = FirebaseManager()
 
     private val _successRegistered = MutableStateFlow(mutableStateOf(regState.waiting))
@@ -56,7 +56,10 @@ class OnboardingViewModel (
 
                     navHostController.navigate(Screen.onBoardWait.route)
                     if (isUserRegistered(currentUserEmail.toString())){
+                        currUser = firebaseManager.getRegisteredUser(currentUserEmail.toString())
                         _successRegistered.value.value = regState.success
+                        //log the user for debug
+                        Log.d("reg_user",currUser.toString())
                         navigateHolderPage()
                     }
                     else{

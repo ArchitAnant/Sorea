@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.ari.drup.data.Chat
 import com.ari.drup.regular_font
+import com.ari.drup.ui.components.ChatBox
 import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.dummyChatList
 import java.text.SimpleDateFormat
@@ -167,43 +168,6 @@ fun ChatItem(chat : Chat,modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-fun ChatBox(message: String,
-            onMessageChange: (String) -> Unit,
-            modifier: Modifier = Modifier
-) {
-
-    OutlinedTextField(
-        value = message,
-        onValueChange = { onMessageChange(it) },
-        placeholder = {
-            Text(
-                text="Type your message here",
-                color = Color.White.copy(0.3f),
-                fontFamily = regular_font,
-                fontSize = 18.sp
-                )
-                      },
-        modifier = modifier.fillMaxWidth(0.85f),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.Transparent,
-            focusedContainerColor = Color.White.copy(0.3f),
-            unfocusedContainerColor = Color.White.copy(0.3f),
-            focusedLabelColor = Color.White,
-            focusedIndicatorColor = Color.White,
-            unfocusedIndicatorColor = Color.Transparent,
-            unfocusedLeadingIconColor = Color.White,
-            focusedLeadingIconColor = Color.White,
-
-            ),
-        shape = RoundedCornerShape(40.dp),
-        textStyle = TextStyle(
-            fontFamily = regular_font,
-            fontSize = 18.sp
-        )
-    )
-}
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true, backgroundColor = 0xFF000000)

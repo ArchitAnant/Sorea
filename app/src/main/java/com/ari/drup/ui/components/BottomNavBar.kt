@@ -55,7 +55,7 @@ fun BottomNavigation(
     currentSelection: Int = 0,
     onBottomClick: (String) -> Unit
 ) {
-    val radioOptions = listOf("Home", "Chat", "Community", "Profile")
+    val radioOptions = listOf("Home", "Community", "Profile")
     val (selectedOption, onOptionSelected) = remember { mutableStateOf(radioOptions[currentSelection]) }
 
     Column(

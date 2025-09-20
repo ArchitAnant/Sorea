@@ -28,12 +28,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ari.drup.R
 
+val avatars = listOf(R.drawable.avt_1,R.drawable.avt_2,R.drawable.avt_4,R.drawable.avt_5,R.drawable.avt_6,R.drawable.avt_7)
 @Composable
 fun AvatarSelector(onSelectAvatar : (Int) -> Unit,
                    modifier: Modifier = Modifier
 ) {
     var selection by remember { mutableIntStateOf(0) }
-    val avatars = listOf(R.drawable.avt_1,R.drawable.avt_2,R.drawable.avt_4,R.drawable.avt_5,R.drawable.avt_6,R.drawable.avt_7)
 
     LazyHorizontalGrid(rows = GridCells.Fixed(2),
         modifier= modifier.height(200.dp),

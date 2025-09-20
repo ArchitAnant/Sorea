@@ -33,10 +33,10 @@ import com.ari.drup.data.DisplayCommunity
 import com.ari.drup.regular_font
 
 @Composable
-fun CommunityPage(onOpenClick: (String, String) -> Unit, modifier: Modifier = Modifier) {
+fun CommunityPage(onOpenClick: (String, String) -> Unit,onCreateClick: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier = modifier
         .fillMaxSize()
-        .padding(start = 30.dp, top = 40.dp, end = 30.dp)) {
+        .padding(start = 10.dp, top = 40.dp, end = 10.dp)) {
 
         Text(
             text = "Community",
@@ -45,7 +45,9 @@ fun CommunityPage(onOpenClick: (String, String) -> Unit, modifier: Modifier = Mo
             fontSize = 40.sp
         )
         Spacer(Modifier.height(50.dp))
-        CreateChannelButton()
+        CreateChannelButton(){
+
+        }
         Spacer(Modifier.height(50.dp))
         Text(
             text = "Joined Communities",
@@ -98,7 +100,7 @@ fun CreateChannelButton(onCreateClick: () -> Unit = {}) {
 
 @Composable
 fun CommunityItem(displayCommunity: DisplayCommunity,
-                  onOpenClick : () -> Unit = {}
+                  onOpenClick : () -> Unit
 ) {
     Button(onClick = onOpenClick,
         modifier = Modifier.padding(vertical = 5.dp).fillMaxWidth(),
@@ -148,5 +150,5 @@ fun CommunityItem(displayCommunity: DisplayCommunity,
 private fun ChannelPageScreen() {
     CommunityPage({id,title->
 
-    })
+    },{})
 }

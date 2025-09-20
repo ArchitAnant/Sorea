@@ -54,13 +54,17 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
     var supsRegisterState = vm.successRegistered.collectAsState().value
     NavHost(navController = navHostController, startDestination = Screen.signin.route) {
 
+        composable(route = Screen.mainChatScreen.route) {
+            MainChatScreen(modifier)
+        }
+
         composable(route = Screen.chatScreen.route) {
             ChatScreen(chatId, chatTitle = chatViewModel.chatTitle.value,chatViewModel,modifier)
         }
 
 
         composable(route = Screen.holderScreen.route) {
-            HolderScreen(chatViewModel,navHostController,modifier)
+            HolderScreen(vm,chatViewModel,navHostController,modifier)
         }
 
 
@@ -88,7 +92,7 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
                         Log.d("CredExp", "User cancelled One Tap")
                     } catch (e: NoCredentialException) {
                         // No credentials saved on the device — show a toast or fallback
-                        Toast.makeText(context, "No credentials available. Please add a Google Account on the device", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "No credentials available. Please add a Google Account on the device or check you internet connection.", Toast.LENGTH_SHORT).show()
                     } catch (e: GetCredentialException) {
                         // Other credential errors
                         Log.e("CredExp", "Other credential error", e)
@@ -128,10 +132,8 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
 
 
 sealed class Screen(val route:String){
-    object homeScreen: Screen(route = "home_screen")
-    object communitySetup: Screen(route = "community_screen")
+    object mainChatScreen: Screen(route = "main_chat_screen")
     object chatScreen: Screen(route = "chat_screen")
-    object profileScreen: Screen(route = "profile_screen")
 
     object signin : Screen(route = "sign_in")
     object registerUser : Screen(route = "register_user_screen")

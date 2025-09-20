@@ -37,5 +37,24 @@ class FirebaseManager {
             false
         }
     }
+
+    suspend fun getRegisteredUser(email: String): User? {
+        return try {
+            val documentSnapshot = db.collection("users")
+                .document(email)
+                .get()
+                .await()
+
+            if (documentSnapshot.exists()) {
+                documentSnapshot.toObject(User::class.java)
+            } else {
+                Log.w(TAG, "No user found with email: $email")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching user", e)
+            null
+        }
+    }
 }
 
