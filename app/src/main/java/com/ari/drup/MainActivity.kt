@@ -21,7 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ari.drup.ui.NavGraph
 import com.ari.drup.ui.theme.DrupTheme
 import com.ari.drup.viewmodels.GroupChatViewModel
-import com.ari.drup.viewmodels.ViewModel
+import com.ari.drup.viewmodels.OnboardingViewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             DrupTheme {
                 val navHostController = rememberNavController()
-                val vm = ViewModel(navHostController)
+                val vm = OnboardingViewModel(navHostController)
                 Scaffold(modifier = Modifier
                     .background(Color.Black)
                     .fillMaxSize()) { innerPadding ->

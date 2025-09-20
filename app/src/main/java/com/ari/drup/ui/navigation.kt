@@ -1,20 +1,18 @@
 package com.ari.drup.ui
 
-import android.R
 import android.content.Context
 import android.credentials.GetCredentialException
 import android.os.Build
-import android.provider.Settings.System.getString
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.navigation.NavHostController
@@ -22,9 +20,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ari.drup.ui.screens.ChatScreen
 import com.ari.drup.ui.screens.CommunityPage
-import com.ari.drup.ui.screens.SignInScreen
+import com.ari.drup.ui.screens.onboarding.RegisterUserScreen
+import com.ari.drup.ui.screens.onboarding.SignInScreen
+import com.ari.drup.ui.screens.onboarding.WaitingScreen
 import com.ari.drup.viewmodels.GroupChatViewModel
-import com.ari.drup.viewmodels.ViewModel
+import com.ari.drup.viewmodels.OnboardingViewModel
+import com.ari.drup.viewmodels.regState
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import kotlinx.coroutines.launch
 
@@ -33,7 +34,7 @@ import kotlinx.coroutines.launch
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun NavGraph (chatViewModel : GroupChatViewModel,
-              vm : ViewModel,
+              vm : OnboardingViewModel,
               navHostController: NavHostController,
               context : Context,
               web_client_id: String,
@@ -43,6 +44,7 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
     var chatId by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     val credentialManager = CredentialManager.create(context)
+    var supsRegisterState = vm.successRegistered.collectAsState().value
     NavHost(navController = navHostController, startDestination = Screen.signin.route) {
 
         composable(route = Screen.communitySetup.route) {
@@ -83,6 +85,22 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
                 }
             })
         }
+        composable(route=Screen.registerUser.route){
+            RegisterUserScreen({
+                coroutineScope.launch {
+                    vm.navigateWaitingScreen()
+                    if (vm.registerNewUser(it)){
+                        supsRegisterState.value = regState.success
+                    }
+                    else{
+                        supsRegisterState.value = regState.failed
+                    }
+                }
+            },modifier)
+        }
+        composable(route= Screen.onBoardWait.route) {
+            WaitingScreen(vm)
+        }
     }
 }
 
@@ -91,4 +109,6 @@ sealed class Screen(val route:String){
     object communitySetup: Screen(route = "community_screen")
     object chatScreen: Screen(route = "chat_screen")
     object  signin : Screen(route = "sign_in")
+    object registerUser : Screen(route = "register_user_screen")
+    object onBoardWait : Screen(route = "onboard_wait_screen")
 }
