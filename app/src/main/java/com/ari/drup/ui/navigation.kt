@@ -4,6 +4,7 @@ import android.content.Context
 import android.credentials.GetCredentialException
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -15,6 +16,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -77,10 +80,19 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
                             request = request,
                             context = context
                         )
-                        vm.onGetCredentialResponse(result.credential)
-                    }
-                    catch (e : GetCredentialException){
-                        Log.e("CredExp","Cred  Error",e)
+                        vm.onGetCredentialResponse( result.credential)
+                    } catch (e: GetCredentialCancellationException) {
+                        // User cancelled the One Tap prompt — just log it or ignore
+                        Log.d("CredExp", "User cancelled One Tap")
+                    } catch (e: NoCredentialException) {
+                        // No credentials saved on the device — show a toast or fallback
+                        Toast.makeText(context, "No credentials available. Please add a Google Account on the device", Toast.LENGTH_SHORT).show()
+                    } catch (e: GetCredentialException) {
+                        // Other credential errors
+                        Log.e("CredExp", "Other credential error", e)
+                    } catch (e: Exception) {
+                        // Any other unexpected exception
+                        Log.e("CredExp", "Unexpected error", e)
                     }
                 }
             })

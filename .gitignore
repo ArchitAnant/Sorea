@@ -1,3 +1,4 @@
+app/debug
 *.iml
 .gradle
 google-services.json
