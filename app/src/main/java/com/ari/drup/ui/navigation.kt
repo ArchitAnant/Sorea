@@ -7,6 +7,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +22,7 @@ import androidx.credentials.exceptions.NoCredentialException
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.ari.drup.data.User
 import com.ari.drup.ui.screens.ChatScreen
 import com.ari.drup.ui.screens.CommunityPage
 import com.ari.drup.ui.screens.HolderScreen
@@ -34,8 +36,9 @@ import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.regState
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-
+import kotlinx.serialization.json.Json
 
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -47,12 +50,23 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
               web_client_id: String,
               modifier: Modifier
 ) {
-//    val currentUser = Firebase.auth.currentUser
+    var startDestination by remember {  mutableStateOf(Screen.signin.route)}
+    LaunchedEffect(Unit) {
+        val user = UserCache.cachedUserFlow(context).first()
+        val email = UserCache.cachedEmailFlow(context).first()
+        if (user != null && email != null) {
+            vm.currUser = user
+            vm.currentUserEmail = email
+            startDestination = Screen.holderScreen.route
+        } else {
+            startDestination = Screen.signin.route
+        }
+    }
     var chatId by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     val credentialManager = CredentialManager.create(context)
     var supsRegisterState = vm.successRegistered.collectAsState().value
-    NavHost(navController = navHostController, startDestination = Screen.signin.route) {
+    NavHost(navController = navHostController, startDestination = startDestination) {
 
         composable(route = Screen.mainChatScreen.route) {
             MainChatScreen(modifier)
@@ -64,7 +78,7 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
 
 
         composable(route = Screen.holderScreen.route) {
-            HolderScreen(vm,chatViewModel,navHostController,modifier)
+            HolderScreen(context,vm,chatViewModel,navHostController,modifier)
         }
 
 
@@ -86,7 +100,7 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
                             request = request,
                             context = context
                         )
-                        vm.onGetCredentialResponse( result.credential)
+                        vm.onGetCredentialResponse( context,result.credential)
                     } catch (e: GetCredentialCancellationException) {
                         // User cancelled the One Tap prompt — just log it or ignore
                         Log.d("CredExp", "User cancelled One Tap")
@@ -119,6 +133,9 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
         composable(route= Screen.onBoardWait.route) {
             WaitingScreen({success->
                 if (success){
+                    coroutineScope.launch {
+                        vm.pushUserToCache(context, vm.currUser!!, vm.currentUserEmail.toString())
+                    }
                     navHostController.navigate(Screen.holderScreen.route)
                 }else{
                     navHostController.navigate(Screen.signin.route)

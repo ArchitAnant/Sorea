@@ -1,5 +1,6 @@
 package com.ari.drup.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.credentials.Credential
@@ -44,7 +45,7 @@ class OnboardingViewModel (
         return currUser;
     }
 
-    fun  onGetCredentialResponse(credential: Credential){
+    fun  onGetCredentialResponse(context: Context, credential: Credential){
         viewModelScope.launch {
             if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
@@ -59,6 +60,8 @@ class OnboardingViewModel (
                         currUser = firebaseManager.getRegisteredUser(currentUserEmail.toString())
                         _successRegistered.value.value = regState.success
                         //log the user for debug
+                        pushUserToCache(context,currUser!!,currentUserEmail.toString())
+
                         Log.d("reg_user",currUser.toString())
                         navigateHolderPage()
                     }
@@ -73,6 +76,9 @@ class OnboardingViewModel (
     }
 
 
+    suspend fun pushUserToCache(context: Context, user: User, email: String){
+        UserCache.saveUser(context,user,email)
+    }
 
     suspend fun isUserRegistered(email: String) : Boolean{
         return firebaseManager.checkRegisteredUsers(email)

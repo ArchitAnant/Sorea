@@ -1,6 +1,8 @@
 package com.ari.drup
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -17,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.ari.drup.ui.NavGraph
 import com.ari.drup.ui.theme.DrupTheme
@@ -40,7 +43,6 @@ class MainActivity : ComponentActivity() {
             )
         )
         val chatViewModel = GroupChatViewModel()
-
         setContent {
             DrupTheme {
                 val navHostController = rememberNavController()
@@ -78,5 +80,17 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 fun GreetingPreview() {
     DrupTheme {
         Greeting("Android")
+    }
+}
+
+fun hasNotificationPermission(context: Context): Boolean {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        // Before Android 13, permission is granted at install time
+        true
     }
 }

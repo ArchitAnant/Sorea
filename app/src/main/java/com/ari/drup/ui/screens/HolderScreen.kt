@@ -1,7 +1,12 @@
 package com.ari.drup.ui.screens
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,11 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Message
-import androidx.compose.material.icons.automirrored.outlined.Chat
-import androidx.compose.material.icons.automirrored.outlined.Message
-import androidx.compose.material.icons.filled.BubbleChart
-import androidx.compose.material.icons.filled.Message
 import androidx.compose.material.icons.outlined.BubbleChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,11 +31,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.ari.drup.hasNotificationPermission
 import com.ari.drup.ui.Screen
 import com.ari.drup.ui.components.BottomNavigation
 import com.ari.drup.viewmodels.GroupChatViewModel
@@ -43,6 +47,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun HolderScreen(
+    context : Context,
     onboardingViewModel: OnboardingViewModel,
     chatViewModel : GroupChatViewModel,
     navHostController: NavHostController,
@@ -53,6 +58,29 @@ fun HolderScreen(
     var chatId by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ){ isGranted ->
+        if (isGranted) {
+            Log.d("Permission", "Notification permission granted")
+        } else {
+            Log.d("Permission", "Notification permission denied")
+        }
+    }
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            permissionLauncher.launch(Manifest.permission.SCHEDULE_EXACT_ALARM)
+        }
+
+    }
+    LaunchedEffect(Unit) {
+        if (hasNotificationPermission(context)) {
+            Log.d("NotificationPermission", "Permission GRANTED")
+        } else {
+            Log.d("NotificationPermission", "Permission DENIED")
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
@@ -95,6 +123,7 @@ fun HolderScreen(
         Box(
             modifier = Modifier.padding(innerPadding).padding(horizontal = 20.dp).fillMaxSize()
         ) {
+
             // Content based on selected tab
             when (selectedTab) {
                 "Home" -> HomeScreen(modifier)
@@ -113,6 +142,9 @@ fun HolderScreen(
                     onboardingViewModel.currUser = null
                     onboardingViewModel.currentUserEmail = null
                     navHostController.navigate(Screen.signin.route)
+                    scope.launch {
+                        UserCache.clearUser(context)
+                    }
                 }
             }
         }
@@ -124,5 +156,5 @@ fun HolderScreen(
 @Preview
 @Composable
 private fun HolderScreenPrev() {
-    HolderScreen(OnboardingViewModel(rememberNavController()),GroupChatViewModel(), rememberNavController())
+//    HolderScreen(Acti,OnboardingViewModel(rememberNavController()),GroupChatViewModel(), rememberNavController())
 }
