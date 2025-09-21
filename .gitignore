@@ -1,0 +1,86 @@
+app/debug
+*.iml
+.gradle
+.kotlin/
+google-services.json
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+__pycache__
+.env
+temp*
+
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Generated files
+notifications.json
+conversation_memory.json
+user_profiles.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files (user data should not be committed)
+conversation_memory.json
+user_profiles.json
+*.log
+
+# Test outputs
+test_output/
+local.settings.json
+serviceAccountKey.json
+mybro-a1ea5-firebase-adminsdk-xxxx-xxxxxxxx.json
+*.json
+!host.json
