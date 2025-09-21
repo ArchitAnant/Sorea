@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
             DrupTheme {
                 val navHostController = rememberNavController()
                 val vm = OnboardingViewModel(firebaseManager,navHostController)
-                val chatViewModel = GroupChatViewModel(firebaseManager)
+                val chatViewModel = GroupChatViewModel(vm,firebaseManager)
                 val mainChatViewModel = MainChatViewModel(vm,firebaseManager)
                 Scaffold(modifier = Modifier
                     .background(Color.Black)

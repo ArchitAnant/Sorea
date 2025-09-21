@@ -65,15 +65,15 @@ import com.ari.drup.ui.components.ChatBox
 import com.ari.drup.ui.components.ChatPrev
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
-import com.ari.drup.viewmodels.dummyChatList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 fun formatDate(input: String): String {
     return try {
-        val parser = java.text.SimpleDateFormat("ddMMyyyy", java.util.Locale.getDefault())
+        val cleanInput = input.removePrefix("conv_") // extract yyyyMMdd
+        val parser = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault())
         val formatter = java.text.SimpleDateFormat("dd-MM-yyyy", java.util.Locale.getDefault())
-        val date = parser.parse(input)
+        val date = parser.parse(cleanInput)
         formatter.format(date!!)
     } catch (e: Exception) {
         e.printStackTrace()
@@ -120,6 +120,7 @@ fun MainChatScreen(
                 currentIndex = (messages.indices).random()
             }
         }
+        listState.animateScrollToItem(listState.layoutInfo.totalItemsCount)
     }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -165,7 +166,7 @@ fun MainChatScreen(
                         modifier = Modifier.padding(16.dp)
                     )
                 } else {
-                    LazyColumn {
+                    LazyColumn (reverseLayout = true){
                         items(historyItems) { item ->
                             Text(
                                 text = formatDate(item),
@@ -203,6 +204,16 @@ fun MainChatScreen(
                                 }
                             }
                     )
+                    if (chats.isNotEmpty()){
+                        Text(
+                            text = formatDate(mainChatViewModel.selectedChat.collectAsState().value!!),
+                            color = Color.White.copy(0.7f),
+                            fontFamily = regular_font,
+                            modifier = Modifier.padding(start = 10.dp),
+                            fontSize = 18.sp,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                     Spacer(modifier = Modifier.weight(2f))
                     Icon(
                         Icons.Outlined.Info,
@@ -281,9 +292,10 @@ fun MainChatScreen(
 
                         LazyColumn(modifier = Modifier.fillMaxSize().align(Alignment.TopEnd)
                             ,
-                            contentPadding = innerPadding) {
+                            contentPadding = innerPadding,
+                            reverseLayout = true) {
                             items(chats) { item ->
-                                ChatPrev( item.values.toList()[0])
+                                ChatPrev( item)
                             }
 
                         }

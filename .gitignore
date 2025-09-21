@@ -1,6 +1,7 @@
 app/debug
 *.iml
 .gradle
+.kotlin/
 google-services.json
 /local.properties
 /.idea/caches

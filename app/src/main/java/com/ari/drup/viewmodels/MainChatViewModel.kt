@@ -24,34 +24,44 @@ class MainChatViewModel(
     private val _selectedChat = MutableStateFlow<String?>(null)
     val selectedChat = _selectedChat.asStateFlow()
 
-    private val _chats = MutableStateFlow<List<Map<String, MessDao>>>(mutableListOf())
+    private val _chats = MutableStateFlow<List<MessDao>>(mutableListOf())
     val chats = _chats.asStateFlow()
 
 
     fun initializeChatScreen() {
-        fetchChatNames()
-        val today:String? = chatList.value.getTodayIfPresent()
-        if (!today.isNullOrBlank()){
-            selectChat(today)
-            fetchChats()
+        fetchChatNames() // triggers async update
+
+        viewModelScope.launch {
+            chatList.collect { list ->
+                val today = list.getTodayIfPresent()
+                if (!today.isNullOrBlank()) {
+                    selectChat(today)
+                    fetchChats()
+                }
+            }
         }
     }
 
 
     fun fetchChats() {
         if (!selectedChat.value.isNullOrBlank()){
-            Log.d("MainChatViewModel", "Fetching chats for chat: ${selectedChat.value}")
             viewModelScope.launch {
                 val fetchedChats = firebaseManager.fetchMessages(
                     onboardingViewModel.currentUserEmail!!,
                     selectedChat.value!!
-                )
-                // Sort messages by timestamp ascending (oldest first)
-                val sortedChats = fetchedChats.map { it.toList() } // convert map to list of pairs
-                    .map { it.sortedBy { pair -> pair.second.timestamp } } // sort each chat map
-                    .map { it.toMap() } // convert back to map if needed
+                ) // this gives List<Map<String, MessDao>>
 
-                _chats.value = sortedChats
+                // Flatten all messages into one list
+                val allMessages = fetchedChats.flatMap { it.values }
+
+                // Sort by timestamp (ascending = oldest first)
+                val sortedMessages = allMessages.sortedByDescending { it.timestamp }
+
+                // If you want descending (newest first):
+                // val sortedMessages = allMessages.sortedByDescending { it.timestamp }
+
+                // Store back in StateFlow (wrap in listOf(mapOf(..)) if needed)
+                _chats.value = sortedMessages
             }
         }
     }
@@ -89,17 +99,22 @@ class MainChatViewModel(
     }
     fun isToday(dateString: String): Boolean {
         return try {
-            val formatter = DateTimeFormatter.ofPattern("ddMMyyyy", Locale.getDefault())
-            val parsedDate = LocalDate.parse(dateString, formatter)
+            val cleanString = dateString.removePrefix("conv_") // get yyyyMMdd
+            val formatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.getDefault())
+            val parsedDate = LocalDate.parse(cleanString, formatter)
             val today = LocalDate.now()
             parsedDate.isEqual(today)
         } catch (e: Exception) {
             false
         }
     }
+
     fun List<String>.getTodayIfPresent(): String? {
-        val formatter = DateTimeFormatter.ofPattern("ddMMyyyy", Locale.getDefault())
-        val today = LocalDate.now().format(formatter) // today's date in ddMMyyyy
-        return this.find { it == today }
+        val formatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.getDefault())
+        val today = LocalDate.now().format(formatter)
+
+        return this.find { raw ->
+            raw.lowercase().removePrefix("conv_").trim() == today
+        }
     }
 }

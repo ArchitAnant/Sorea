@@ -25,6 +25,9 @@ import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.google.firebase.Timestamp
 import dev.jeziellago.compose.markdowntext.MarkdownText
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun SystemChat(message: String, modifier: Modifier = Modifier) {
@@ -76,13 +79,24 @@ fun UserChat(message: String,modifier: Modifier = Modifier) {
         }
     }
 }
-
+fun formatTimestampToHHMM(timestamp: Long): String {
+    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+    return sdf.format(Date(timestamp))
+}
 @Composable
 fun ChatPrev(messDao: MessDao, modifier: Modifier = Modifier) {
     Column(modifier=modifier.fillMaxWidth().padding(10.dp)) {
         UserChat(messDao.user,modifier=modifier.align(Alignment.End))
         Spacer(modifier= Modifier.height(20.dp))
         SystemChat(messDao.model,modifier=modifier.align(Alignment.Start))
+        Text(
+            text = formatTimestampToHHMM(messDao.timestamp.toDate().time),
+            modifier = Modifier.padding(end = 15.dp,
+                top = 10.dp),
+            fontFamily = regular_font,
+            color = Color.White.copy(0.4f),
+            fontSize = 15.sp
+        )
     }
 }
 

@@ -2,11 +2,10 @@ package com.ari.drup.data
 
 import android.content.ContentValues.TAG
 import android.util.Log
+import com.ari.drup.data.community.Community
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
-import java.util.function.BooleanSupplier
-import kotlin.math.log
 
 class FirebaseManager {
     private val db = Firebase.firestore
@@ -62,12 +61,10 @@ class FirebaseManager {
         return try {
             val snapshot = db.collection("users")
                 .document(userEmail)
-                .collection("conversation")
-                .document("chats")
-                .collection("chats") // if "chats" is itself a subcollection
+                .collection("conversations")
                 .get()
                 .await()
-
+            Log.d("tag",snapshot.documents.toList().toString())
             snapshot.documents.map { it.id }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -82,11 +79,9 @@ class FirebaseManager {
 
         val snapshot = db.collection("users")
             .document(email)
-            .collection("conversation")
-            .document("chats")
-            .collection("chats")
+            .collection("conversations")
             .document(chatId)
-            .collection(chatId)
+            .collection("chat")
             .get()
             .await()
 
@@ -96,7 +91,7 @@ class FirebaseManager {
         }
     }
 
-    suspend fun createCommunity(community: Community, email: String,name:String){
+    suspend fun createCommunity(community: Community, email: String, name:String){
         try {
             db.collection("communities")
                 .document(name)

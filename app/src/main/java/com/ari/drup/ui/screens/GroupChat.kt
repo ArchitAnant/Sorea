@@ -1,9 +1,7 @@
 package com.ari.drup.ui.screens
 
 import android.annotation.SuppressLint
-import android.os.Message
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,16 +18,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,17 +35,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.ari.drup.data.Chat
+import com.ari.drup.data.community.Chat
 import com.ari.drup.regular_font
 import com.ari.drup.ui.components.ChatBox
 import com.ari.drup.viewmodels.GroupChatViewModel
-import com.ari.drup.viewmodels.dummyChatList
 import java.text.SimpleDateFormat
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
@@ -60,7 +55,8 @@ fun ChatScreen(chatId: String,
                groupChatViewModel: GroupChatViewModel
                ,modifier: Modifier = Modifier
 ) {
-    var message by remember { mutableStateOf("") }
+    val currentChats = groupChatViewModel.messages.collectAsState().value
+    var message = groupChatViewModel.chatBox.collectAsState().value
     Scaffold(
         topBar = {
             Text(
@@ -82,14 +78,14 @@ fun ChatScreen(chatId: String,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 ChatBox(
-                    message,
-                    onMessageChange = { message = it }
+                    message.value,
+                    onMessageChange = { groupChatViewModel.setChatBox(it) }
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Button(
                     onClick = {
-                        if (message.isNotBlank()) {
-                            groupChatViewModel.setChatBox(message)
+                        if (message.value.isNotBlank()) {
+                            groupChatViewModel.sendMessage()
                         }
                     },
                     shape = CircleShape,
@@ -114,10 +110,18 @@ fun ChatScreen(chatId: String,
                 .padding(horizontal = 10.dp)
 
         ) {
-            LazyColumn(modifier = Modifier.fillMaxSize(),
-                contentPadding = innerPadding) {
-                items(dummyChatList){chat->
-                    ChatItem(chat)
+            if (currentChats.messages.isEmpty()){
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.align(Alignment.Center))
+            }
+            else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = innerPadding,
+                    reverseLayout = true
+                ) {
+                    items(currentChats.messages) { chat ->
+                        ChatItem(chat)
+                    }
                 }
             }
 
@@ -129,17 +133,23 @@ fun ChatScreen(chatId: String,
 @Composable
 fun ChatItem(chat : Chat,modifier: Modifier = Modifier) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        AsyncImage(
-            model = chat.image, // URL of your image
-            contentDescription = "Sample image",
-            modifier = Modifier.size(50.dp).clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
+//        AsyncImage(
+//            model = chat.image, // URL of your image
+//            contentDescription = "Sample image",
+//            modifier = Modifier.size(50.dp).clip(CircleShape),
+//            contentScale = ContentScale.Crop
+//        )
         Spacer(modifier = Modifier.width(10.dp))
         Column(
+            Modifier.padding(2.dp)
         ) {
+            val zonedDateTime = ZonedDateTime.parse(chat.timestamp, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+
+// format to HH:mm
+            val timeString = zonedDateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm", Locale.getDefault()))
+
             Text(
-                text=chat.username,
+                text=chat.userId,
                 color = Color.White.copy(0.5f),
                 fontFamily = regular_font,
                 fontSize = 12.sp,
@@ -156,7 +166,7 @@ fun ChatItem(chat : Chat,modifier: Modifier = Modifier) {
                     .padding(vertical = 11.dp, horizontal = 10.dp)
             )
             Text(
-                text= SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(chat.timestamp)),
+                text= timeString,
                 color = Color.White.copy(0.5f),
                 fontFamily = regular_font,
                 fontSize = 12.sp,

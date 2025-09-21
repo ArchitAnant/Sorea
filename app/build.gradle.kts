@@ -95,4 +95,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
 
     implementation("com.github.jeziellago:compose-markdown:0.5.4")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    implementation("com.google.code.gson:gson:2.10.1")
 }

@@ -58,7 +58,7 @@ fun NavGraph (
     LaunchedEffect(Unit) {
         val user: User? = UserCache.cachedUserFlow(context).firstOrNull()
         val email: String? = UserCache.cachedEmailFlow(context).firstOrNull()
-
+        vm.setUserToken()
         if (user != null && email != null) {
             vm.currUser = user
             vm.currentUserEmail = email

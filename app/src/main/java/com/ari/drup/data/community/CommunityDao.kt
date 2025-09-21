@@ -1,4 +1,4 @@
-package com.ari.drup.data
+package com.ari.drup.data.community
 
 import com.google.firebase.Timestamp
 
