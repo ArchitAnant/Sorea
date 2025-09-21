@@ -38,6 +38,9 @@ class GroupChatViewModel(
         _selectedCommunity.value.value = community
     }
 
+    private var _chatLoading = MutableStateFlow(mutableStateOf(false))
+    val chatLoading = _chatLoading.asStateFlow()
+
     private val _chatBox = MutableStateFlow(mutableStateOf(""))
     val chatBox = _chatBox.asStateFlow()
     var chatTitle = mutableStateOf("")
@@ -77,6 +80,8 @@ class GroupChatViewModel(
     fun joinRoom(roomId: String) {
         // Disconnect previous socket if switching rooms
         chatWebSocket?.disconnect()
+        _chatBox.value.value = ""
+        _messages.value = Messages()
 
         chatWebSocket = ChatWebSocket(
             token = onboardingViewModel.firebaseIdToken!!,
@@ -86,9 +91,12 @@ class GroupChatViewModel(
         chatWebSocket?.connect()
     }
 
+    fun setChatLoading(loading: Boolean){
+        _chatLoading.value.value = loading
+    }
+
     fun fetchChats() {
         chatWebSocket?.loadChat()
-
     }
 
     fun sendMessage() {

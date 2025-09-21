@@ -23,12 +23,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ari.drup.data.User
-import com.ari.drup.ui.screens.ChatScreen
-import com.ari.drup.ui.screens.CommunityPage
+import com.ari.drup.ui.screens.communitychat.ChatScreen
 import com.ari.drup.ui.screens.HolderScreen
-import com.ari.drup.ui.screens.HomeScreen
-import com.ari.drup.ui.screens.MainChatScreen
-import com.ari.drup.ui.screens.ProfileScreen
+import com.ari.drup.ui.screens.mainchat.MainChatScreen
 import com.ari.drup.ui.screens.onboarding.RegisterUserScreen
 import com.ari.drup.ui.screens.onboarding.SignInScreen
 import com.ari.drup.ui.screens.onboarding.WaitingScreen
@@ -37,10 +34,8 @@ import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.regState
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)

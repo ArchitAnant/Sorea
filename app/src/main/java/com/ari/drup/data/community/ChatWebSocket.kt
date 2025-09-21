@@ -59,6 +59,7 @@ class ChatWebSocket(
                                     nextCursor = messagesResponse.messages.nextCursor
                                 ))
                             }
+                            viewModel.setChatLoading(false)
                         }
                         "message" -> {
                             val chat = Gson().fromJson(json.toString(), Chat::class.java)
@@ -103,6 +104,7 @@ class ChatWebSocket(
     }
 
     fun loadChat() {
+        viewModel.setChatLoading(true)
         Log.d("ChatWebSocket","Sending for load chats")
         val payload = """{"type": "load_chat"}"""
         webSocket?.send(payload)

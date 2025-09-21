@@ -1,4 +1,4 @@
-package com.ari.drup.ui.screens
+package com.ari.drup.ui.screens.mainchat
 
 import android.annotation.SuppressLint
 import android.util.Log
@@ -59,19 +59,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ari.drup.data.FirebaseManager
 import com.ari.drup.data.mainchat.ApiState
 import com.ari.drup.data.mainchat.MessDao
-import com.ari.drup.data.mainchat.Response
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.components.ChatBox
 import com.ari.drup.ui.components.ChatPrev
 import com.ari.drup.viewmodels.MainChatViewModel
-import com.ari.drup.viewmodels.OnboardingViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -79,8 +77,8 @@ import java.util.Locale
 fun formatDate(input: String): String {
     return try {
         val cleanInput = input.removePrefix("conv_") // extract yyyyMMdd
-        val parser = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.getDefault())
-        val formatter = java.text.SimpleDateFormat("dd-MM-yyyy", java.util.Locale.getDefault())
+        val parser = SimpleDateFormat("yyyyMMdd", Locale.getDefault())
+        val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
         val date = parser.parse(cleanInput)
         formatter.format(date!!)
     } catch (e: Exception) {

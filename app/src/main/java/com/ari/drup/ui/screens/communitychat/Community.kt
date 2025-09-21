@@ -1,6 +1,7 @@
-package com.ari.drup.ui.screens
+package com.ari.drup.ui.screens.communitychat
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,10 +29,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.ari.drup.R
 import com.ari.drup.data.community.Community
 import com.ari.drup.regular_font
 import com.ari.drup.viewmodels.GroupChatViewModel
@@ -62,7 +65,10 @@ fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, S
         )
         Spacer(Modifier.height(30.dp))
         if (activeComms.value.isEmpty()){
-            CircularProgressIndicator(color = Color.White)
+            Row(modifier=modifier.fillMaxWidth()){
+                CircularProgressIndicator(color = Color.White)
+            }
+
         }
         else {
             LazyColumn {
@@ -119,12 +125,21 @@ fun CommunityItem(displayCommunity: Community,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth(),
            ) {
-            AsyncImage(
-                model = displayCommunity.logo, // URL of your image
-                contentDescription = "Sample image",
-                modifier = Modifier.size(50.dp).clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
+            if (displayCommunity.logo.isEmpty()){
+                Image(painterResource(R.drawable.ic_launcher_foreground),
+                    contentDescription = "",
+                    modifier = Modifier.size(50.dp).clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                    )
+            }
+            else {
+                AsyncImage(
+                    model = displayCommunity.logo, // URL of your image
+                    contentDescription = "Sample image",
+                    modifier = Modifier.size(50.dp).clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            }
             Spacer(modifier = Modifier.weight(1f))
             Column {
                 Text(

@@ -23,7 +23,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,16 +31,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.ari.drup.hasNotificationPermission
 import com.ari.drup.ui.Screen
 import com.ari.drup.ui.components.BottomNavigation
+import com.ari.drup.ui.screens.communitychat.CommunityPage
 import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
@@ -124,17 +120,19 @@ fun HolderScreen(
             // Content based on selected tab
             when (selectedTab) {
                 "Home" -> HomeScreen(modifier)
-                "Community" -> CommunityPage(chatViewModel,{id,title ->
+                "Community" -> CommunityPage(
+                    chatViewModel, { id, title ->
                     chatId = id
                     chatViewModel.chatTitle.value = title
-                    Log.d("title",chatViewModel.chatTitle.value)
+                    Log.d("title", chatViewModel.chatTitle.value)
                     navHostController.navigate(Screen.chatScreen.route)
                 },
                     {
                         scope.launch {
                             snackbarHostState.showSnackbar("Feature in development!")
                         }
-                    },modifier)
+                    }, modifier
+                )
                 "Profile" -> ProfileScreen(onboardingViewModel.currUser!!){
                     onboardingViewModel.currUser = null
                     onboardingViewModel.currentUserEmail = null

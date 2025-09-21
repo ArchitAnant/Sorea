@@ -1,4 +1,4 @@
-package com.ari.drup.ui.screens
+package com.ari.drup.ui.screens.communitychat
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -26,27 +26,19 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.ari.drup.data.community.Chat
 import com.ari.drup.regular_font
 import com.ari.drup.ui.components.ChatBox
 import com.ari.drup.viewmodels.GroupChatViewModel
-import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Date
 import java.util.Locale
 
 @Composable
@@ -57,6 +49,7 @@ fun ChatScreen(chatId: String,
 ) {
     val currentChats = groupChatViewModel.messages.collectAsState().value
     var message = groupChatViewModel.chatBox.collectAsState().value
+    val chatStateLoading = groupChatViewModel.chatLoading.collectAsState().value
     Scaffold(
         topBar = {
             Text(
@@ -110,8 +103,22 @@ fun ChatScreen(chatId: String,
                 .padding(horizontal = 10.dp)
 
         ) {
-            if (currentChats.messages.isEmpty()){
+            if (currentChats.messages.isEmpty() && chatStateLoading.value){
                 CircularProgressIndicator(color = Color.White, modifier = Modifier.align(Alignment.Center))
+            }
+            else if (currentChats.messages.isEmpty() && !chatStateLoading.value){
+                Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "Be the first one!",
+                        color = Color.White,
+                        fontFamily = regular_font,
+                        fontSize = 20.sp,
+                        modifier = modifier
+                            .padding(top = 30.dp, start = 30.dp)
+                            .fillMaxWidth()
+
+                    )
+                }
             }
             else {
                 LazyColumn(
