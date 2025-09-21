@@ -113,7 +113,6 @@ fun MainChatScreen(
     val historyItems = mainChatViewModel.chatList.collectAsState().value // replace with VM state
     val chats by mainChatViewModel.chats.collectAsState()
     val responseState = mainChatViewModel.chatState.collectAsState().value
-    var uiResponseState by remember { mutableStateOf(ResponseState.idle) }
     val listState = rememberLazyListState()
 
     // Dynamic messages for waiting state
@@ -242,11 +241,11 @@ fun MainChatScreen(
                     .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Bottom) {
-                    when(uiResponseState){
-                        ResponseState.idle -> {
+                    when(responseState){
+                        is ApiState.Success -> {
 
                         }
-                        ResponseState.waiting -> {
+                        is ApiState.Waiting -> {
                             Text(
                                 text = "Waiting For Response...",
                                 color = Color.White.copy(0.7f),
@@ -255,7 +254,7 @@ fun MainChatScreen(
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
-                        ResponseState.failed -> {
+                        is ApiState.Failed -> {
                             Text(
                                 text = "Failed Fetching Response try again.",
                                 color = Color.Red.copy(0.7f),
@@ -264,7 +263,7 @@ fun MainChatScreen(
                                 modifier = Modifier.padding(16.dp)
                             )
                         }
-                        ResponseState.success -> {
+                        is ApiState.Idle  -> {
 
                         }
                     }
@@ -285,7 +284,6 @@ fun MainChatScreen(
                                     if (message.isNotBlank()) {
                                         mainChatViewModel.sendMessage(message)
                                         message = ""
-                                        uiResponseState = ResponseState.waiting
                                     }
                                 }
                                 else if(message.isNotBlank()){
@@ -297,8 +295,8 @@ fun MainChatScreen(
                             shape = CircleShape,
                             modifier = Modifier.size(50.dp),
                             contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = if (uiResponseState!=ResponseState.waiting) Color.White else Color.White.copy(0.3f)),
-                            enabled = uiResponseState!=ResponseState.waiting
+                            colors = ButtonDefaults.buttonColors(containerColor = if (responseState!= ApiState.Waiting) Color.White else Color.White.copy(0.3f)),
+                            enabled = responseState!=ApiState.Waiting
                         ) {
                             Icon(
                                 Icons.Filled.ArrowUpward,

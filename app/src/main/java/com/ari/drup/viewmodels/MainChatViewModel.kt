@@ -31,7 +31,7 @@ class MainChatViewModel(
     private val _chats = MutableStateFlow<List<MessDao>>(mutableListOf())
     val chats = _chats.asStateFlow()
 
-    private val _chatState = MutableStateFlow<ApiState<Response>>(ApiState.Waiting)
+    private val _chatState = MutableStateFlow<ApiState<Response>>(ApiState.Idle)
     val chatState  = _chatState.asStateFlow()
 
     fun resetResponseState() {
