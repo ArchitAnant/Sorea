@@ -14,6 +14,7 @@ import com.ari.drup.ui.Screen
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
 import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,22 +29,24 @@ enum class regState {
 }
 
 class OnboardingViewModel (
+    private val firebaseManager: FirebaseManager,
     private val navHostController: NavHostController
 ) : ViewModel() {
     var currentUserEmail: String? = null
     var currUser : User? = null
-    val firebaseManager = FirebaseManager()
+    var firebaseIdToken:String? = null
+
 
     private val _successRegistered = MutableStateFlow(mutableStateOf(regState.waiting))
-    val successRegistered = _successRegistered.asStateFlow()
+    var successRegistered = _successRegistered.asStateFlow()
 
-    fun setUser(user: User){
-        currUser = user;
-    }
-
-    fun getUser() : User?{
-        return currUser;
-    }
+//    fun setUser(user: User){
+//        currUser = user;
+//    }
+//
+//    fun getUser() : User?{
+//        return currUser;
+//    }
 
     fun  onGetCredentialResponse(context: Context, credential: Credential){
         viewModelScope.launch {
@@ -54,14 +57,13 @@ class OnboardingViewModel (
                 currentUserEmail = authResult.user?.email
                 Log.d("credential",currentUserEmail.toString())
                 if (currentUserEmail != null) {
-
                     navHostController.navigate(Screen.onBoardWait.route)
                     if (isUserRegistered(currentUserEmail.toString())){
                         currUser = firebaseManager.getRegisteredUser(currentUserEmail.toString())
                         _successRegistered.value.value = regState.success
                         //log the user for debug
                         pushUserToCache(context,currUser!!,currentUserEmail.toString())
-
+                        setUserToken()
                         Log.d("reg_user",currUser.toString())
                         navigateHolderPage()
                     }
@@ -74,7 +76,18 @@ class OnboardingViewModel (
             }
         }
     }
+    fun changeRegisteredState(state: regState){
+        _successRegistered.value.value = state
+    }
+    fun setUserToken(){
 
+            FirebaseAuth.getInstance().currentUser?.getIdToken(true)
+                ?.addOnSuccessListener { result ->
+                    firebaseIdToken = result.token
+                    Log.d("reg_user", firebaseIdToken.toString())
+                }
+
+    }
 
     suspend fun pushUserToCache(context: Context, user: User, email: String){
         UserCache.saveUser(context,user,email)

@@ -1,5 +1,6 @@
 package com.ari.drup.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -21,13 +22,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.outlined.ClearAll
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
@@ -39,10 +38,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,16 +58,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ari.drup.data.FirebaseManager
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.components.ChatBox
+import com.ari.drup.ui.components.ChatPrev
+import com.ari.drup.viewmodels.MainChatViewModel
+import com.ari.drup.viewmodels.OnboardingViewModel
+import com.ari.drup.viewmodels.dummyChatList
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+fun formatDate(input: String): String {
+    return try {
+        val parser = java.text.SimpleDateFormat("ddMMyyyy", java.util.Locale.getDefault())
+        val formatter = java.text.SimpleDateFormat("dd-MM-yyyy", java.util.Locale.getDefault())
+        val date = parser.parse(input)
+        formatter.format(date!!)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        input // fallback to original if parsing fails
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
     ExperimentalAnimationApi::class
 )
 @Composable
 fun MainChatScreen(
+    mainChatViewModel: MainChatViewModel,
     modifier: Modifier = Modifier,
     stop: Boolean = false // trigger this when chat starts
 ) {
@@ -76,7 +98,9 @@ fun MainChatScreen(
     val scope = rememberCoroutineScope()
 
     // Fake history list
-    val historyItems = listOf<String>() // replace with VM state
+    val historyItems = mainChatViewModel.chatList.collectAsState().value // replace with VM state
+    val chats = mainChatViewModel.chats.collectAsState().value
+    val listState = rememberLazyListState()
 
     // Dynamic messages for waiting state
     val messages = listOf(
@@ -97,6 +121,7 @@ fun MainChatScreen(
             }
         }
     }
+    val snackbarHostState = remember { SnackbarHostState() }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -143,12 +168,16 @@ fun MainChatScreen(
                     LazyColumn {
                         items(historyItems) { item ->
                             Text(
-                                text = item,
+                                text = formatDate(item),
                                 color = Color.White,
                                 fontSize = 16.sp,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(16.dp)
+                                    .clickable{
+                                        mainChatViewModel.selectChat(item)
+                                        mainChatViewModel.fetchChats()
+                                    }
                             )
                         }
                     }
@@ -158,6 +187,7 @@ fun MainChatScreen(
     ) {
         // Main Screen Content
         Scaffold(
+            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
             topBar = {
                 Row(modifier = modifier.fillMaxWidth().padding(20.dp)) {
                     Icon(
@@ -167,7 +197,10 @@ fun MainChatScreen(
                         modifier = Modifier
                             .size(31.dp)
                             .clickable {
-                                scope.launch { drawerState.open() }
+                                scope.launch {
+                                    drawerState.open()
+                                    mainChatViewModel.fetchChatNames()
+                                }
                             }
                     )
                     Spacer(modifier = Modifier.weight(2f))
@@ -193,8 +226,15 @@ fun MainChatScreen(
                     Spacer(modifier = Modifier.weight(1f))
                     Button(
                         onClick = {
-                            if (message.isNotBlank()) {
-                                // handle send
+                            if (mainChatViewModel.isToday(mainChatViewModel.getSelectedChat()!!)) {
+                                if (message.isNotBlank()) {
+
+                                }
+                            }
+                            else if(message.isNotBlank()){
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Switch back to today's chat to continue")
+                                }
                             }
                         },
                         shape = CircleShape,
@@ -212,28 +252,43 @@ fun MainChatScreen(
                 }
             }
         ) { innerPadding ->
-            Box(modifier = Modifier.background(Color.Black).padding(innerPadding)) {
-                Column(
-                    modifier = modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    AnimatedContent(
-                        targetState = if (stop) "Conversation started ✨" else messages[currentIndex],
-                        transitionSpec = {
-                            fadeIn(tween(700)) with fadeOut(tween(700))
+            Box(modifier = Modifier.background(Color.Black)) {
+                if (chats.isEmpty()) {
+                    Column(
+                        modifier = modifier.fillMaxSize().padding(innerPadding),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+
+                        AnimatedContent(
+                            targetState = if (stop) "Conversation started ✨" else messages[currentIndex],
+                            transitionSpec = {
+                                fadeIn(tween(700)) with fadeOut(tween(700))
+                            }
+                        ) { text ->
+                            Text(
+                                text = text,
+                                color = Color.White,
+                                fontFamily = regular_font,
+                                modifier = Modifier.padding(20.dp),
+                                fontSize = 22.sp,
+                                textAlign = TextAlign.Center
+                            )
                         }
-                    ) { text ->
-                        Text(
-                            text = text,
-                            color = Color.White,
-                            fontFamily = regular_font,
-                            modifier = Modifier.padding(20.dp),
-                            fontSize = 22.sp,
-                            textAlign = TextAlign.Center
-                        )
                     }
                 }
+                else {
+
+                        LazyColumn(modifier = Modifier.fillMaxSize().align(Alignment.TopEnd)
+                            ,
+                            contentPadding = innerPadding) {
+                            items(chats) { item ->
+                                ChatPrev( item.values.toList()[0])
+                            }
+
+                        }
+                }
+
             }
         }
     }
@@ -241,8 +296,9 @@ fun MainChatScreen(
 
 
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview
 @Composable
 private fun MainChatScreenPrev() {
-    MainChatScreen(modifier = Modifier.background(color = Color.Black))
+//    MainChatScreen(MainChatViewModel(FirebaseManager()),ONb,modifier = Modifier.background(color = Color.Black))
 }

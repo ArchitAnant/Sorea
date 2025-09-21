@@ -93,4 +93,6 @@ dependencies {
 
     implementation("androidx.datastore:datastore-preferences:1.1.7")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+
+    implementation("com.github.jeziellago:compose-markdown:0.5.4")
 }

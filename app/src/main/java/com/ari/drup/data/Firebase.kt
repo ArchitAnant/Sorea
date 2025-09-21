@@ -6,6 +6,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await
 import java.util.function.BooleanSupplier
+import kotlin.math.log
 
 class FirebaseManager {
     private val db = Firebase.firestore
@@ -54,6 +55,67 @@ class FirebaseManager {
         } catch (e: Exception) {
             Log.e(TAG, "Error fetching user", e)
             null
+        }
+    }
+    suspend fun fetchAllChatNames(userEmail: String): List<String> {
+        Log.d("FirebaseManager", "Fetching chat names for user: $userEmail")
+        return try {
+            val snapshot = db.collection("users")
+                .document(userEmail)
+                .collection("conversation")
+                .document("chats")
+                .collection("chats") // if "chats" is itself a subcollection
+                .get()
+                .await()
+
+            snapshot.documents.map { it.id }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    suspend fun fetchMessages(
+        email: String,
+        chatId: String
+    ): List<Map<String, MessDao>> {
+
+        val snapshot = db.collection("users")
+            .document(email)
+            .collection("conversation")
+            .document("chats")
+            .collection("chats")
+            .document(chatId)
+            .collection(chatId)
+            .get()
+            .await()
+
+        return snapshot.documents.mapNotNull { doc ->
+            val mess = doc.toObject(MessDao::class.java)
+            mess?.let { mapOf(doc.id to it) }
+        }
+    }
+
+    suspend fun createCommunity(community: Community, email: String,name:String){
+        try {
+            db.collection("communities")
+                .document(name)
+                .set(community)
+        }catch (e : Exception){
+            Log.e(TAG, "Error writing document", e)
+        }
+    }
+
+    suspend fun fetchActiveCommunities(): List<Community>{
+        return try {
+            val snapshot = db.collection("communities")
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { it.toObject(Community::class.java) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error fetching communities", e)
+            emptyList()
         }
     }
 }

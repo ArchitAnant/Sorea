@@ -1,5 +1,6 @@
 package com.ari.drup.ui.screens
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -20,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,11 +33,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.ari.drup.data.DisplayCommunity
+import com.ari.drup.data.Community
 import com.ari.drup.regular_font
+import com.ari.drup.viewmodels.GroupChatViewModel
 
 @Composable
-fun CommunityPage(onOpenClick: (String, String) -> Unit,onCreateClick: () -> Unit, modifier: Modifier = Modifier) {
+fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, String) -> Unit,onCreateClick: () -> Unit, modifier: Modifier = Modifier) {
+    val activeComms = groupChatViewModel.activeCommunities.collectAsState().value
     Column(modifier = modifier
         .fillMaxSize()
         .padding(start = 10.dp, top = 40.dp, end = 10.dp)) {
@@ -56,17 +62,15 @@ fun CommunityPage(onOpenClick: (String, String) -> Unit,onCreateClick: () -> Uni
             fontSize = 20.sp
         )
         Spacer(Modifier.height(30.dp))
-        CommunityItem(
-            DisplayCommunity(
-                chatId = "chatid_1",
-                title = "Exam Pressure",
-                description = "Manage the pressure of exams",
-                logo = "https://developer.android.com/static/guide/practices/ui_guidelines/images/article_icon_adaptive.gif"
-            )
-
-        ){
-            onOpenClick("chatid_1", "Exam Pressure")
+        LazyColumn {
+            items(activeComms.value){coms->
+                Log.d("comms",coms.toString())
+                CommunityItem(coms) {
+                    onOpenClick(coms.title,coms.desc)
+                }
+            }
         }
+
     }
 }
 
@@ -99,7 +103,7 @@ fun CreateChannelButton(onCreateClick: () -> Unit = {}) {
 }
 
 @Composable
-fun CommunityItem(displayCommunity: DisplayCommunity,
+fun CommunityItem(displayCommunity: Community,
                   onOpenClick : () -> Unit
 ) {
     Button(onClick = onOpenClick,
@@ -126,7 +130,7 @@ fun CommunityItem(displayCommunity: DisplayCommunity,
                     modifier = Modifier.padding(start = 5.dp)
                 )
                 Text(
-                    text = displayCommunity.description,
+                    text = displayCommunity.desc,
                     color = Color.White.copy(0.5f),
                     fontFamily = regular_font,
                     fontSize = 15.sp,
@@ -148,7 +152,7 @@ fun CommunityItem(displayCommunity: DisplayCommunity,
 @Preview(showBackground = true, backgroundColor = 0xFF000000)
 @Composable
 private fun ChannelPageScreen() {
-    CommunityPage({id,title->
-
-    },{})
+//    CommunityPage({id,title->
+//
+//    },{})
 }

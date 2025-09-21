@@ -23,6 +23,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +43,9 @@ import com.ari.drup.hasNotificationPermission
 import com.ari.drup.ui.Screen
 import com.ari.drup.ui.components.BottomNavigation
 import com.ari.drup.viewmodels.GroupChatViewModel
+import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
+import com.ari.drup.viewmodels.regState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -50,6 +53,7 @@ fun HolderScreen(
     context : Context,
     onboardingViewModel: OnboardingViewModel,
     chatViewModel : GroupChatViewModel,
+    mainChatViewModel: MainChatViewModel,
     navHostController: NavHostController,
 
     modifier: Modifier = Modifier
@@ -72,14 +76,7 @@ fun HolderScreen(
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             permissionLauncher.launch(Manifest.permission.SCHEDULE_EXACT_ALARM)
         }
-
-    }
-    LaunchedEffect(Unit) {
-        if (hasNotificationPermission(context)) {
-            Log.d("NotificationPermission", "Permission GRANTED")
-        } else {
-            Log.d("NotificationPermission", "Permission DENIED")
-        }
+        mainChatViewModel.initializeChatScreen()
     }
 
     Scaffold(
@@ -127,7 +124,7 @@ fun HolderScreen(
             // Content based on selected tab
             when (selectedTab) {
                 "Home" -> HomeScreen(modifier)
-                "Community" -> CommunityPage({id,title ->
+                "Community" -> CommunityPage(chatViewModel,{id,title ->
                     chatId = id
                     chatViewModel.chatTitle.value = title
                     Log.d("title",chatViewModel.chatTitle.value)
@@ -141,10 +138,12 @@ fun HolderScreen(
                 "Profile" -> ProfileScreen(onboardingViewModel.currUser!!){
                     onboardingViewModel.currUser = null
                     onboardingViewModel.currentUserEmail = null
+                    onboardingViewModel.changeRegisteredState(regState.waiting)
                     navHostController.navigate(Screen.signin.route)
                     scope.launch {
                         UserCache.clearUser(context)
                     }
+
                 }
             }
         }

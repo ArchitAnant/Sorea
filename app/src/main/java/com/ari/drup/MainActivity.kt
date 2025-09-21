@@ -21,8 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
+import com.ari.drup.data.FirebaseManager
 import com.ari.drup.ui.NavGraph
 import com.ari.drup.ui.theme.DrupTheme
+import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 
@@ -42,15 +44,19 @@ class MainActivity : ComponentActivity() {
 //                Color.Black.hashCode()
             )
         )
-        val chatViewModel = GroupChatViewModel()
+
+        val firebaseManager = FirebaseManager()
         setContent {
             DrupTheme {
                 val navHostController = rememberNavController()
-                val vm = OnboardingViewModel(navHostController)
+                val vm = OnboardingViewModel(firebaseManager,navHostController)
+                val chatViewModel = GroupChatViewModel(firebaseManager)
+                val mainChatViewModel = MainChatViewModel(vm,firebaseManager)
                 Scaffold(modifier = Modifier
                     .background(Color.Black)
                     .fillMaxSize()) { innerPadding ->
                     NavGraph(
+                        mainChatViewModel,
                         chatViewModel = chatViewModel,
                         vm = vm,
                         navHostController = navHostController,

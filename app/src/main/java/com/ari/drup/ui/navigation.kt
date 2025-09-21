@@ -33,17 +33,21 @@ import com.ari.drup.ui.screens.onboarding.RegisterUserScreen
 import com.ari.drup.ui.screens.onboarding.SignInScreen
 import com.ari.drup.ui.screens.onboarding.WaitingScreen
 import com.ari.drup.viewmodels.GroupChatViewModel
+import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.regState
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
-fun NavGraph (chatViewModel : GroupChatViewModel,
+fun NavGraph (
+    mainChatViewModel: MainChatViewModel,
+    chatViewModel : GroupChatViewModel,
               vm : OnboardingViewModel,
               navHostController: NavHostController,
               context : Context,
@@ -52,8 +56,9 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
 ) {
     var startDestination by remember {  mutableStateOf(Screen.signin.route)}
     LaunchedEffect(Unit) {
-        val user = UserCache.cachedUserFlow(context).first()
-        val email = UserCache.cachedEmailFlow(context).first()
+        val user: User? = UserCache.cachedUserFlow(context).firstOrNull()
+        val email: String? = UserCache.cachedEmailFlow(context).firstOrNull()
+
         if (user != null && email != null) {
             vm.currUser = user
             vm.currentUserEmail = email
@@ -69,7 +74,7 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
     NavHost(navController = navHostController, startDestination = startDestination) {
 
         composable(route = Screen.mainChatScreen.route) {
-            MainChatScreen(modifier)
+            MainChatScreen(mainChatViewModel = mainChatViewModel, modifier)
         }
 
         composable(route = Screen.chatScreen.route) {
@@ -78,7 +83,7 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
 
 
         composable(route = Screen.holderScreen.route) {
-            HolderScreen(context,vm,chatViewModel,navHostController,modifier)
+            HolderScreen(context,vm,chatViewModel,mainChatViewModel,navHostController,modifier)
         }
 
 
@@ -123,6 +128,7 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
                     vm.navigateWaitingScreen()
                     if (vm.registerNewUser(it)){
                         supsRegisterState.value = regState.success
+//                        vm.setUserToken()
                     }
                     else{
                         supsRegisterState.value = regState.failed
@@ -135,6 +141,7 @@ fun NavGraph (chatViewModel : GroupChatViewModel,
                 if (success){
                     coroutineScope.launch {
                         vm.pushUserToCache(context, vm.currUser!!, vm.currentUserEmail.toString())
+                        vm.setUserToken()
                     }
                     navHostController.navigate(Screen.holderScreen.route)
                 }else{

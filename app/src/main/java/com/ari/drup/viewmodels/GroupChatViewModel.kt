@@ -1,11 +1,27 @@
 package com.ari.drup.viewmodels
 
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.ari.drup.data.Chat
+import com.ari.drup.data.Community
+import com.ari.drup.data.FirebaseManager
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class GroupChatViewModel : ViewModel(){
+class GroupChatViewModel(
+    private val firebaseManager: FirebaseManager
+) : ViewModel(){
+    private val _activeCommunities = MutableStateFlow(mutableStateOf(listOf<Community>()))
+    val activeCommunities = _activeCommunities.asStateFlow()
+
+    init {
+        fillActiveCommunities()
+    }
+
     val groupChatMessages = mutableListOf<String>()
     private val _chatBox = mutableStateOf("")
     var chatTitle = mutableStateOf("")
@@ -16,12 +32,18 @@ class GroupChatViewModel : ViewModel(){
         _chatBox.value = message
     }
 
-
-//
-//    fun sendMessage(){
-//        groupChatMessages.add(_chatBox.value)
-//        _chatBox.value = ""
-//    }
+    fun fillActiveCommunities(){
+        Log.d("fillActiveCommunities","called")
+        viewModelScope.launch {
+            _activeCommunities.value.value = firebaseManager.fetchActiveCommunities()
+        }
+    }
+    fun createCommunity(email:String,name: String,community: Community){
+        viewModelScope.launch {
+            firebaseManager.createCommunity(community,email,name)
+            fillActiveCommunities()
+        }
+    }
 }
 
 val currentTimestamp: Long = System.currentTimeMillis()
