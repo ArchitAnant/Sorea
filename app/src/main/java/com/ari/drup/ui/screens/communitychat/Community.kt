@@ -1,6 +1,7 @@
 package com.ari.drup.ui.screens.communitychat
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,6 +44,7 @@ import com.ari.drup.viewmodels.GroupChatViewModel
 @Composable
 fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, String) -> Unit,onCreateClick: () -> Unit, modifier: Modifier = Modifier) {
     val activeComms = groupChatViewModel.activeCommunities.collectAsState().value
+    val context = LocalContext.current
     Column(modifier = modifier
         .fillMaxSize()
         .padding(start = 10.dp, top = 40.dp, end = 10.dp)) {
@@ -54,7 +57,7 @@ fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, S
         )
         Spacer(Modifier.height(50.dp))
         CreateChannelButton(){
-
+            Toast.makeText(context,"Feature in development!",Toast.LENGTH_LONG).show()
         }
         Spacer(Modifier.height(50.dp))
         Text(

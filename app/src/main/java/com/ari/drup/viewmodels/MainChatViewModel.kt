@@ -34,7 +34,9 @@ class MainChatViewModel(
     private val _chatState = MutableStateFlow<ApiState<Response>>(ApiState.Waiting)
     val chatState  = _chatState.asStateFlow()
 
-
+    fun resetResponseState() {
+        _chatState.value = ApiState.Idle // or null if you prefer
+    }
     fun initializeChatScreen() {
         fetchChatNames() // triggers async update
 
@@ -96,8 +98,19 @@ class MainChatViewModel(
     fun selectChat(chatName: String) {
         _selectedChat.value = chatName
     }
-    fun getSelectedChat(): String?{
-        return _selectedChat.value
+    fun getSelectedChat(): String {
+        val current = _selectedChat.value
+        if (current != null) return current
+
+        // Generate today's chat ID: conv_yyyymmdd
+        val today = LocalDate.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
+        val todayChatId = "conv_${today.format(formatter)}"
+
+        // Call selectChat with today's chat
+        selectChat(todayChatId)
+
+        return todayChatId
     }
 
     fun sendMessage(message: String) {
@@ -113,10 +126,12 @@ class MainChatViewModel(
             }
         }
     }
-    fun appendMess(messDao: MessDao){
-        _chats.value.toMutableList().add(messDao)
+    fun appendMess(messDao: MessDao) {
+        _chats.value = _chats.value + messDao
         fetchChats()
+        fetchChatNames()
     }
+
 
     fun isToday(dateString: String): Boolean {
         return try {

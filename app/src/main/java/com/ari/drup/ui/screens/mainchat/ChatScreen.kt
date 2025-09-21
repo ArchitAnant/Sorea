@@ -111,7 +111,7 @@ fun MainChatScreen(
 
     // Fake history list
     val historyItems = mainChatViewModel.chatList.collectAsState().value // replace with VM state
-    val chats = mainChatViewModel.chats.collectAsState().value
+    val chats by mainChatViewModel.chats.collectAsState()
     val responseState = mainChatViewModel.chatState.collectAsState().value
     var uiResponseState by remember { mutableStateOf(ResponseState.idle) }
     val listState = rememberLazyListState()
@@ -337,7 +337,7 @@ fun MainChatScreen(
                         }
                     }
                 }
-                else {
+
                     Column(modifier= Modifier.align(Alignment.TopEnd)) {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
@@ -349,29 +349,29 @@ fun MainChatScreen(
                             }
 
                         }
-                        when (responseState) {
-                            is ApiState.Waiting -> {
-                                Log.d("Repo","Waitign for resoinse")
-                            }
-                            is ApiState.Success -> {
-                                uiResponseState = ResponseState.success
-                                val response = responseState.data
-                                val tempMess = MessDao(
-                                    user = message,
-                                    model = response.message,
-                                    timestamp = Timestamp.now()
-                                )
-                                mainChatViewModel.appendMess(tempMess)
-                                uiResponseState = ResponseState.idle
-
-                            }
-                            is ApiState.Failed -> {
-                                uiResponseState = ResponseState.failed
+                        LaunchedEffect(responseState) {
+                            when (responseState) {
+                                is ApiState.Success -> {
+                                    val resp = responseState.data
+                                    val tempMess = MessDao(
+                                        user = message,
+                                        model = resp.message,
+                                        timestamp = Timestamp.now()
+                                    )
+                                    mainChatViewModel.appendMess(tempMess)
+                                    mainChatViewModel.resetResponseState()
+                                }
+                                is ApiState.Failed -> {
+                                    // handle failure
+                                    mainChatViewModel.resetResponseState()
+                                }
+                                else -> {}
                             }
                         }
 
+
+
                     }
-                }
 
             }
         }

@@ -14,6 +14,7 @@ interface ChatApi {
 }
 
 sealed class ApiState<out T> {
+    object Idle : ApiState<Nothing>()
     object Waiting : ApiState<Nothing>()
     data class Success<T>(val data: T) : ApiState<T>()
     data class Failed(val error: String) : ApiState<Nothing>()
