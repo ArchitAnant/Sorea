@@ -1,6 +1,7 @@
 package com.ari.drup.ui.screens
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -59,14 +60,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ari.drup.data.FirebaseManager
+import com.ari.drup.data.mainchat.ApiState
+import com.ari.drup.data.mainchat.MessDao
+import com.ari.drup.data.mainchat.Response
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.components.ChatBox
 import com.ari.drup.ui.components.ChatPrev
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 fun formatDate(input: String): String {
     return try {
@@ -81,6 +89,12 @@ fun formatDate(input: String): String {
     }
 }
 
+enum class ResponseState{
+    waiting,
+    success,
+    failed,
+    idle
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
     ExperimentalAnimationApi::class
@@ -100,6 +114,8 @@ fun MainChatScreen(
     // Fake history list
     val historyItems = mainChatViewModel.chatList.collectAsState().value // replace with VM state
     val chats = mainChatViewModel.chats.collectAsState().value
+    val responseState = mainChatViewModel.chatState.collectAsState().value
+    var uiResponseState by remember { mutableStateOf(ResponseState.idle) }
     val listState = rememberLazyListState()
 
     // Dynamic messages for waiting state
@@ -224,43 +240,78 @@ fun MainChatScreen(
                 }
             },
             bottomBar = {
-                Row(
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ChatBox(
-                        message,
-                        onMessageChange = { message = it }
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Button(
-                        onClick = {
-                            if (mainChatViewModel.isToday(mainChatViewModel.getSelectedChat()!!)) {
-                                if (message.isNotBlank()) {
+                Column(modifier
+                    .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Bottom) {
+                    when(uiResponseState){
+                        ResponseState.idle -> {
 
-                                }
-                            }
-                            else if(message.isNotBlank()){
-                                scope.launch {
-                                    snackbarHostState.showSnackbar("Switch back to today's chat to continue")
-                                }
-                            }
-                        },
-                        shape = CircleShape,
-                        modifier = Modifier.size(50.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                        }
+                        ResponseState.waiting -> {
+                            Text(
+                                text = "Waiting For Response...",
+                                color = Color.White.copy(0.7f),
+                                fontSize = 14.sp,
+                                fontFamily = regular_font,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        ResponseState.failed -> {
+                            Text(
+                                text = "Failed Fetching Response try again.",
+                                color = Color.Red.copy(0.7f),
+                                fontSize = 14.sp,
+                                fontFamily = regular_font,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                        ResponseState.success -> {
+
+                        }
+                    }
+                    Row(
+                        modifier = Modifier
+                            .padding(10.dp)
+                        ,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Filled.ArrowUpward,
-                            contentDescription = "",
-                            tint = Color.Black,
-                            modifier = Modifier.size(25.dp)
+                        ChatBox(
+                            message,
+                            onMessageChange = { message = it }
                         )
+                        Spacer(modifier = Modifier.weight(1f))
+                        Button(
+                            onClick = {
+                                if (mainChatViewModel.isToday(mainChatViewModel.getSelectedChat()!!)) {
+                                    if (message.isNotBlank()) {
+                                        mainChatViewModel.sendMessage(message)
+                                        message = ""
+                                        uiResponseState = ResponseState.waiting
+                                    }
+                                }
+                                else if(message.isNotBlank()){
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Switch back to today's chat to continue")
+                                    }
+                                }
+                            },
+                            shape = CircleShape,
+                            modifier = Modifier.size(50.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = if (uiResponseState!=ResponseState.waiting) Color.White else Color.White.copy(0.3f)),
+                            enabled = uiResponseState!=ResponseState.waiting
+                        ) {
+                            Icon(
+                                Icons.Filled.ArrowUpward,
+                                contentDescription = "",
+                                tint = Color.Black,
+                                modifier = Modifier.size(25.dp)
+                            )
+                        }
                     }
                 }
+
             }
         ) { innerPadding ->
             Box(modifier = Modifier.background(Color.Black)) {
@@ -289,24 +340,54 @@ fun MainChatScreen(
                     }
                 }
                 else {
-
-                        LazyColumn(modifier = Modifier.fillMaxSize().align(Alignment.TopEnd)
-                            ,
+                    Column(modifier= Modifier.align(Alignment.TopEnd)) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
                             contentPadding = innerPadding,
-                            reverseLayout = true) {
+                            reverseLayout = true
+                        ) {
                             items(chats) { item ->
-                                ChatPrev( item)
+                                ChatPrev(item)
                             }
 
                         }
+                        when (responseState) {
+                            is ApiState.Waiting -> {
+                                Log.d("Repo","Waitign for resoinse")
+                            }
+                            is ApiState.Success -> {
+                                uiResponseState = ResponseState.success
+                                val response = responseState.data
+                                val tempMess = MessDao(
+                                    user = message,
+                                    model = response.message,
+                                    timestamp = Timestamp.now()
+                                )
+                                mainChatViewModel.appendMess(tempMess)
+                                uiResponseState = ResponseState.idle
+
+                            }
+                            is ApiState.Failed -> {
+                                uiResponseState = ResponseState.failed
+                            }
+                        }
+
+                    }
                 }
 
             }
         }
     }
 }
-
-
+fun parseToFirebaseTimestamp(dateString: String): Timestamp {
+    val formatter = DateTimeFormatter.ofPattern(
+        "MMMM d, yyyy 'at' h:mm:ss a O",
+        Locale.ENGLISH
+    )
+    val zonedDateTime = ZonedDateTime.parse(dateString, formatter)
+    val instant = zonedDateTime.toInstant()
+    return Timestamp(instant.epochSecond, instant.nano)
+}
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Preview

@@ -61,7 +61,7 @@ class MainActivity : ComponentActivity() {
                         vm = vm,
                         navHostController = navHostController,
                         context = this,
-                        web_client_id = getString(R.string.WEB_CLIENT_ID),
+                        web_client_id = BuildConfig.WEB_CLIENT_ID,
                         modifier = Modifier
                             .padding(innerPadding)
                             .background(Color.Black)

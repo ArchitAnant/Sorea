@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ari.drup.R
-import com.ari.drup.data.MessDao
+import com.ari.drup.data.mainchat.MessDao
 import com.ari.drup.data.User
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font

@@ -3,6 +3,7 @@ package com.ari.drup.data
 import android.content.ContentValues.TAG
 import android.util.Log
 import com.ari.drup.data.community.Community
+import com.ari.drup.data.mainchat.MessDao
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import kotlinx.coroutines.tasks.await

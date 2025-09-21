@@ -1,11 +1,15 @@
 package com.ari.drup.viewmodels
 
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ari.drup.BuildConfig
 import com.ari.drup.data.FirebaseManager
-import com.ari.drup.data.MessDao
+import com.ari.drup.data.mainchat.ApiState
+import com.ari.drup.data.mainchat.AzureClient
+import com.ari.drup.data.mainchat.MessDao
+import com.ari.drup.data.mainchat.AzureQuery
+import com.ari.drup.data.mainchat.Response
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -26,6 +30,9 @@ class MainChatViewModel(
 
     private val _chats = MutableStateFlow<List<MessDao>>(mutableListOf())
     val chats = _chats.asStateFlow()
+
+    private val _chatState = MutableStateFlow<ApiState<Response>>(ApiState.Waiting)
+    val chatState  = _chatState.asStateFlow()
 
 
     fun initializeChatScreen() {
@@ -93,10 +100,24 @@ class MainChatViewModel(
         return _selectedChat.value
     }
 
-    fun sendChat(email:String,prompt: String){
+    fun sendMessage(message: String) {
+        _chatState.value = ApiState.Waiting
+        viewModelScope.launch {
 
-
+            try {
+                val request = AzureQuery(onboardingViewModel.currentUserEmail!!,message)
+                val response = AzureClient().chatApi.sendMessage(BuildConfig.AZURE_KEY, request)
+                _chatState.value = ApiState.Success(response)
+            } catch (e: Exception) {
+                _chatState.value = ApiState.Failed(e.localizedMessage ?: "Unknown error")
+            }
+        }
     }
+    fun appendMess(messDao: MessDao){
+        _chats.value.toMutableList().add(messDao)
+        fetchChats()
+    }
+
     fun isToday(dateString: String): Boolean {
         return try {
             val cleanString = dateString.removePrefix("conv_") // get yyyyMMdd

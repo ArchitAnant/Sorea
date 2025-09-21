@@ -35,8 +35,10 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val WEB_CLIENT_ID = getLocalProperty("WEB_CLIENT_ID", projectDir)
+        val WEB_CLIENT_ID = getLocalProperty("WEB_CLIENT_ID", rootProject.projectDir)
         buildConfigField("String","WEB_CLIENT_ID", "\"$WEB_CLIENT_ID\"")
+        val AZURE_KEY = getLocalProperty("AZURE_KEY",rootProject.projectDir)
+        buildConfigField("String","AZURE_KEY", "\"$AZURE_KEY\"")
     }
 
     buildTypes {
@@ -99,4 +101,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
+
 }
