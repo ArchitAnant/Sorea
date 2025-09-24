@@ -5,6 +5,7 @@ No sessions, no analytics, no separate tables - just users organized by email
 """
 
 import os
+import logging
 import secrets
 from datetime import datetime, date
 from typing import List, Dict, Any, Optional
@@ -26,6 +27,7 @@ class FirebaseManager:
     def __init__(self):
         self.db = None
         self.initialize_firebase()
+        
     
     def initialize_firebase(self):
         """Initialize Firebase using environment variables or service account file."""
@@ -33,24 +35,27 @@ class FirebaseManager:
             if not firebase_admin._apps:
                 # Try environment variables first
                 if self._use_env_credentials():
-                    print("SUCCESS: Firebase initialized with environment variables!")
+                    # print("SUCCESS: Firebase initialized with environment variables!")
+                    logging.info("SUCCESS: Firebase initialized with environment variables!")
                 # Fallback to service account file
                 elif self._use_service_account_file():
-                    print("SUCCESS: Firebase initialized with service account file!")
+                    logging.info("SUCCESS: Firebase initialized with service account file!")
+                    # print("SUCCESS: Firebase initialized with service account file!")
                 else:
                     raise Exception("No valid Firebase credentials found")
             
             self.db = firestore.client()
             
         except Exception as e:
+            logging.error(f"ERROR: Firebase initialization failed: {e}")
             print(f"ERROR: Firebase initialization failed: {e}")
-            self.db = None
+            self.db = None 
     
     def _use_env_credentials(self):
         """Try to initialize Firebase using environment variables."""
         try:
             # Check if required environment variables exist
-            project_id = os.getenv('FIREBASE_PROJECT_ID') or 'mybro-a1ea5'
+            project_id = os.getenv('FIREBASE_PROJECT_ID') or 'skatit-ec470'
             private_key = os.getenv('FIREBASE_PRIVATE_KEY')
             client_email = os.getenv('FIREBASE_CLIENT_EMAIL')
             
@@ -78,7 +83,7 @@ class FirebaseManager:
     def _use_service_account_file(self):
         """Try to initialize Firebase using service account file."""
         try:
-            cred = credentials.Certificate("mybro-a1ea5-firebase-adminsdk-5a3xf-6089092d21.json")
+            cred = credentials.Certificate("skatit-ec470-firebase-adminsdk-fbsvc-1b6d547ba7.json")
             firebase_admin.initialize_app(cred)
             return True
         except Exception as e:
@@ -106,6 +111,7 @@ class FirebaseManager:
     
     def get_user_profile(self, email: str) -> UserProfile:
         """Get user profile from Firestore using email as document ID."""
+        logging.info(f"Fetching user profile for email: {email}")
         if self.db:
             try:
                 # Get profile data from users collection
@@ -118,8 +124,9 @@ class FirebaseManager:
                         name=user_data.get('name')
                     )
             except Exception as e:
-                print(f"ERROR: Error getting user profile: {e}")
-        
+                logging.error(f"ERROR: Error getting user profile: {e}")
+                logging.debug(f"DEBUG: User profile fetch failed for email: {email}")
+
         return UserProfile(
             name="Unknown"
         )
@@ -141,12 +148,13 @@ class FirebaseManager:
                 
                 if profile_updates:
                     self.db.collection('users').document(email).update(profile_updates)
-                    print(f"SUCCESS: Updated user profile for {email} with fields: {list(profile_updates.keys())}")
+                    # print(f"SUCCESS: Updated user profile for {email} with fields: {list(profile_updates.keys())}")
+                    logging.info(f"SUCCESS: Updated user profile for {email} with fields: {list(profile_updates.keys())}")
                 else:
-                    print(f"INFO: No authorized fields to update for {email}")
-                    
+                    logging.info(f"INFO: No authorized fields to update for {email}")
+
             except Exception as e:
-                print(f"ERROR: Error updating user profile: {e}")
+                logging.error(f"ERROR: Error updating user profile: {e}")
     
     # ==================== CONVERSATION OPERATIONS ====================
     
@@ -156,6 +164,7 @@ class FirebaseManager:
                     emotion_detected: str = None, urgency_level: int = 1):
         """Add a chat pair (user + model response) to Firestore."""
         if not self.db:
+            logging.error(f"ERROR: Firestore DB not initialized.")
             return
         
         try:
@@ -191,10 +200,10 @@ class FirebaseManager:
             # Add chat pair into subcollection
             conv_doc_ref.collection("chat").add(chat_pair_data)
 
-            print(f"SUCCESS: Added chat pair to {email}'s conversation")
+            logging.info(f"SUCCESS: Added chat pair to {email}'s conversation")
 
         except Exception as e:
-            print(f"ERROR: Error adding chat pair: {e}")
+            logging.error(f"ERROR: Error adding chat pair: {e}")
 
     
     def add_message(self, email: str, role: str, content: str, 

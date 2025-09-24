@@ -6,6 +6,7 @@ from chatbot import MentalHealthChatbot
 from memory import MemoryManager
 from firebase_manager import FirebaseManager
 import json
+import logging
 from datetime import datetime
 
 # Initialize all components
@@ -18,15 +19,18 @@ chatbot = MentalHealthChatbot()
 
 def android_chat(user_prompt, user_email="arientific@gmail.com"):
     try:
+        logging.info(f"Received prompt: {user_prompt} from email: {user_email}")
         user_profile = memory_manager.get_user_profile(user_email)
         user_name = user_profile.name 
         chatbot._generate_daily_summary_if_needed(user_email)
         proactive_greeting = chatbot._generate_proactive_greeting(user_email)
         topic_filter = chatbot.health_filter.is_mental_health_related(user_prompt)
         emotion, urgency_level = chatbot.health_filter.detect_emotion(user_prompt)
+        logging.info(f"Detected emotion: {emotion}, Urgency level: {urgency_level}")
         
         if not topic_filter.is_mental_health_related:
             redirect_response = "Sorry but i can not answer to that question!!!."
+            
         
             firebase_manager.add_chat_pair(
                 email=user_email,
@@ -43,6 +47,9 @@ def android_chat(user_prompt, user_email="arientific@gmail.com"):
         context = memory_manager.get_conversation_context(user_email)
         recent_messages = memory_manager.get_recent_messages(user_email, 20)
         conversation_depth = len(recent_messages) if recent_messages else 0
+        logging.info(f"Conversation depth: {conversation_depth}")
+            
+            # Step 12: Handle crisis situations immediately
         
         if urgency_level >= 5:
             crisis_response = chatbot._handle_crisis_situation(user_prompt, user_name)
@@ -111,6 +118,7 @@ def android_chat(user_prompt, user_email="arientific@gmail.com"):
                     chatbot._mark_event_followed_up(user_email, event_type)
                     break
         
+        logging.info("Adding chat pair to Firestore")
         firebase_manager.add_chat_pair(
             email=user_email,
             user_message=user_prompt,
@@ -122,5 +130,6 @@ def android_chat(user_prompt, user_email="arientific@gmail.com"):
         return bot_message
         
     except Exception as e:
+        logging.error(f"ERROR: {e}")
         return f"Sorry, I'm having technical difficulties. Please try again later. Error: {e}"
 
