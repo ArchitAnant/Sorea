@@ -12,6 +12,9 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from google.cloud.firestore import FieldFilter
 from models import UserProfile, ChatPair, ImportantEvent
+from google.cloud import firestore as fbs
+from google.cloud.firestore_v1 import Increment
+
 
 # Load environment variables
 from dotenv import load_dotenv
@@ -147,8 +150,10 @@ class FirebaseManager:
     
     # ==================== CONVERSATION OPERATIONS ====================
     
+
+
     def add_chat_pair(self, email: str, user_message: str, model_response: str, 
-                      emotion_detected: str = None, urgency_level: int = 1):
+                    emotion_detected: str = None, urgency_level: int = 1):
         """Add a chat pair (user + model response) to Firestore."""
         if not self.db:
             return
@@ -160,39 +165,37 @@ class FirebaseManager:
             chat_pair_data = {
                 "user": user_message,
                 "model": model_response,
-                "timestamp": firestore.SERVER_TIMESTAMP,
-                "emotion_detected": emotion_detected,  # Use snake_case consistently
-                "urgency_level": urgency_level         # Use snake_case consistently
+                "timestamp": fbs.SERVER_TIMESTAMP,
+                "urgency_level": urgency_level
             }
+            if emotion_detected is not None:
+                chat_pair_data["emotion_detected"] = emotion_detected
             
-            # Add chat pair to user's conversation subcollection
-            self.db.collection('users').document(email).collection('conversations').document(conversation_id).collection('chat').add(chat_pair_data)
-            
-            # Update conversation metadata
-            conv_doc_ref = self.db.collection('users').document(email).collection('conversations').document(conversation_id)
-            conv_doc = conv_doc_ref.get()
-            
-            if conv_doc.exists:
-                existing_metadata = conv_doc.to_dict()
-                pair_count = existing_metadata.get('chatPairCount', 0) + 1
-                message_count = existing_metadata.get('messageCount', 0) + 2  # Each pair adds 2 messages
-            else:
-                pair_count = 1
-                message_count = 2  # First pair = 2 messages
-            
-            metadata = {
-                "startDate": now.strftime('%Y-%m-%d'),
-                "chatPairCount": pair_count,
-                "messageCount": message_count,
-                "lastChatAt": firestore.SERVER_TIMESTAMP,
-                "lastMessageAt": firestore.SERVER_TIMESTAMP
-            }
-            
-            conv_doc_ref.set(metadata, merge=True)
+            # Reference to today's conversation doc
+            conv_doc_ref = (
+                self.db.collection("users")
+                .document(email)
+                .collection("conversations")
+                .document(conversation_id)
+            )
+
+            # Ensure conversation doc exists & update counters
+            conv_doc_ref.set({
+                "startDate": now.strftime("%Y-%m-%d"),
+                "chatPairCount": Increment(1),
+                "messageCount": Increment(2),   # user + model
+                "lastChatAt": fbs.SERVER_TIMESTAMP,
+                "lastMessageAt": fbs.SERVER_TIMESTAMP
+            }, merge=True)
+
+            # Add chat pair into subcollection
+            conv_doc_ref.collection("chat").add(chat_pair_data)
+
             print(f"SUCCESS: Added chat pair to {email}'s conversation")
-            
+
         except Exception as e:
             print(f"ERROR: Error adding chat pair: {e}")
+
     
     def add_message(self, email: str, role: str, content: str, 
                    emotion_detected: str = None, urgency_level: int = 1):
