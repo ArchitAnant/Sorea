@@ -1,3 +1,4 @@
+app/release
 app/debug
 *.iml
 .gradle

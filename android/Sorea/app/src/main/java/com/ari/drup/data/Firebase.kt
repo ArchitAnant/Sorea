@@ -5,7 +5,10 @@ import android.util.Log
 import com.ari.drup.data.community.Community
 import com.ari.drup.data.mainchat.MessDao
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
+import com.google.type.DateTime
 import kotlinx.coroutines.tasks.await
 
 class FirebaseManager {
@@ -113,6 +116,46 @@ class FirebaseManager {
             Log.e(TAG, "Error fetching communities", e)
             emptyList()
         }
+    }
+
+    suspend fun getLastActiveTime(email: String): Timestamp? {
+        Log.d("FirebaseManager", "Fetching chat names for user: $email")
+        return try {
+            val snapshot = db.collection("users")
+                .document(email)
+                .collection("conversations")
+                .get()
+                .await()
+
+            Log.d("tag", snapshot.documents.toString())
+
+            snapshot.documents
+                .mapNotNull { it.getTimestamp("lastMessageAt") } // safe cast
+                .maxByOrNull { it } // latest timestamp
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+     fun listenToMessages(
+        userEmail: String,
+        chatId: String,
+        onNewMessage: (List<MessDao>) -> Unit
+    ){
+        db.collection("users")
+            .document(userEmail)
+            .collection("conversations")
+            .document(chatId)
+            .collection("chat")
+            .orderBy("timestamp", Query.Direction.DESCENDING)
+            .addSnapshotListener {
+                snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+
+                val messages = snapshot.documents.mapNotNull { it.toObject(MessDao::class.java) }
+                onNewMessage(messages)
+            }
     }
 }
 

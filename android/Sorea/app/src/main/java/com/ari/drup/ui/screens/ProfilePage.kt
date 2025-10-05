@@ -36,10 +36,11 @@ import com.ari.drup.regular_font
 import com.ari.drup.ui.components.avatars
 
 @Composable
-fun ProfileScreen(user: User, modifier: Modifier = Modifier,onSignOut:()-> Unit) {
-    Column(modifier=modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,
+fun ProfileScreen(user: User, modifier: Modifier = Modifier,onPushNotification:()->Unit,onSignOut:()-> Unit) {
+    Column(modifier= Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally) {
-        NameAndAvatar(user.name,user.username,user.avatar)
+        NameAndAvatar(user.name,user.username,user.avatar,modifier)
+        Spacer(Modifier.weight(1f))
         Button(onClick = {onSignOut()},
             modifier = Modifier.padding(vertical = 20.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(0.3f))
@@ -59,6 +60,7 @@ fun ProfileScreen(user: User, modifier: Modifier = Modifier,onSignOut:()-> Unit)
 
             }
         }
+
     }
 }
 
@@ -100,7 +102,7 @@ fun NameAndAvatar(name: String, username: String, avatarId:Int, modifier: Modifi
 @Composable
 private fun ProfileScreenPev() {
     ProfileScreen(User("ari_archit","Archit Anant",2, gender = "Male",
-        1100304000000),modifier = Modifier.background(Color.Black)){
+        1100304000000),modifier = Modifier.background(Color.Black),{}){
 
     }
 }

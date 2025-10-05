@@ -3,10 +3,17 @@ package com.ari.drup.ui.screens.mainchat
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.with
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -59,12 +66,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ari.drup.baseDark
 import com.ari.drup.data.mainchat.ApiState
 import com.ari.drup.data.mainchat.MessDao
+import com.ari.drup.mainAccent
+import com.ari.drup.mainLight
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.components.ChatBox
 import com.ari.drup.ui.components.ChatPrev
+import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.delay
@@ -87,18 +98,13 @@ fun formatDate(input: String): String {
     }
 }
 
-enum class ResponseState{
-    waiting,
-    success,
-    failed,
-    idle
-}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class,
     ExperimentalAnimationApi::class
 )
 @Composable
 fun MainChatScreen(
+    homeScreenViewModel: HomeScreenViewModel,
     mainChatViewModel: MainChatViewModel,
     modifier: Modifier = Modifier,
     stop: Boolean = false // trigger this when chat starts
@@ -109,8 +115,7 @@ fun MainChatScreen(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Fake history list
-    val historyItems = mainChatViewModel.chatList.collectAsState().value // replace with VM state
+    val historyItems = homeScreenViewModel.chatList.collectAsState().value // replace with VM state
     val chats by mainChatViewModel.chats.collectAsState()
     val responseState = mainChatViewModel.chatState.collectAsState().value
     val listState = rememberLazyListState()
@@ -207,20 +212,20 @@ fun MainChatScreen(
                     Icon(
                         Icons.Outlined.ClearAll,
                         contentDescription = "",
-                        tint = Color.White.copy(0.7f),
+                        tint = mainLight.copy(0.9f),
                         modifier = Modifier
                             .size(31.dp)
                             .clickable {
                                 scope.launch {
                                     drawerState.open()
-                                    mainChatViewModel.fetchChatNames()
+                                    homeScreenViewModel.fetchChatNames()
                                 }
                             }
                     )
                     if (chats.isNotEmpty()){
                         Text(
                             text = formatDate(mainChatViewModel.selectedChat.collectAsState().value!!),
-                            color = Color.White.copy(0.7f),
+                            color = mainLight.copy(0.9f),
                             fontFamily = regular_font,
                             modifier = Modifier.padding(start = 10.dp),
                             fontSize = 18.sp,
@@ -231,7 +236,7 @@ fun MainChatScreen(
                     Icon(
                         Icons.Outlined.Info,
                         contentDescription = "",
-                        tint = Color.White.copy(0.7f),
+                        tint = mainLight.copy(0.9f),
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -246,9 +251,20 @@ fun MainChatScreen(
 
                         }
                         is ApiState.Waiting -> {
+                            val infiniteTransition = rememberInfiniteTransition(label = "waitingAnim")
+                            val alpha by infiniteTransition.animateFloat(
+                                initialValue = 0.4f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(1000, easing = EaseInOut),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "alphaAnim"
+                            )
+
                             Text(
                                 text = "Waiting For Response...",
-                                color = Color.White.copy(0.7f),
+                                color = Color.White.copy(alpha),
                                 fontSize = 14.sp,
                                 fontFamily = regular_font,
                                 modifier = Modifier.padding(16.dp)
@@ -280,7 +296,7 @@ fun MainChatScreen(
                         Spacer(modifier = Modifier.weight(1f))
                         Button(
                             onClick = {
-                                if (mainChatViewModel.isToday(mainChatViewModel.getSelectedChat()!!)) {
+                                if (mainChatViewModel.isToday(mainChatViewModel.getSelectedChat())) {
                                     if (message.isNotBlank()) {
                                         mainChatViewModel.sendMessage(message)
                                         message = ""
@@ -295,13 +311,13 @@ fun MainChatScreen(
                             shape = CircleShape,
                             modifier = Modifier.size(50.dp),
                             contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = if (responseState!= ApiState.Waiting) Color.White else Color.White.copy(0.3f)),
+                            colors = ButtonDefaults.buttonColors(containerColor = if (responseState!= ApiState.Waiting) mainLight else mainLight.copy(0.3f)),
                             enabled = responseState!=ApiState.Waiting
                         ) {
                             Icon(
                                 Icons.Filled.ArrowUpward,
                                 contentDescription = "",
-                                tint = Color.Black,
+                                tint = baseDark,
                                 modifier = Modifier.size(25.dp)
                             )
                         }
@@ -326,7 +342,7 @@ fun MainChatScreen(
                         ) { text ->
                             Text(
                                 text = text,
-                                color = Color.White,
+                                color = mainLight,
                                 fontFamily = regular_font,
                                 modifier = Modifier.padding(20.dp),
                                 fontSize = 22.sp,
@@ -343,20 +359,25 @@ fun MainChatScreen(
                             reverseLayout = true
                         ) {
                             items(chats) { item ->
-                                ChatPrev(item)
+                                AnimatedVisibility(
+                                    visible = true,
+                                    enter = fadeIn(animationSpec = tween(400)) + slideInVertically(
+                                        initialOffsetY = { fullHeight -> fullHeight / 3 },
+                                        animationSpec = tween(400)
+                                    ),
+                                    exit = fadeOut(tween(200))
+                                ) {
+                                    ChatPrev(item)
+                                }
                             }
 
                         }
                         LaunchedEffect(responseState) {
                             when (responseState) {
                                 is ApiState.Success -> {
-                                    val resp = responseState.data
-                                    val tempMess = MessDao(
-                                        user = message,
-                                        model = resp.message,
-                                        timestamp = Timestamp.now()
-                                    )
-                                    mainChatViewModel.appendMess(tempMess)
+//                                    mainChatViewModel.refreshChat()
+                                    Log.d("ChatItem",chats.size.toString())
+                                    mainChatViewModel.observeChat()
                                     mainChatViewModel.resetResponseState()
                                 }
                                 is ApiState.Failed -> {
@@ -366,23 +387,11 @@ fun MainChatScreen(
                                 else -> {}
                             }
                         }
-
-
-
                     }
 
             }
         }
     }
-}
-fun parseToFirebaseTimestamp(dateString: String): Timestamp {
-    val formatter = DateTimeFormatter.ofPattern(
-        "MMMM d, yyyy 'at' h:mm:ss a O",
-        Locale.ENGLISH
-    )
-    val zonedDateTime = ZonedDateTime.parse(dateString, formatter)
-    val instant = zonedDateTime.toInstant()
-    return Timestamp(instant.epochSecond, instant.nano)
 }
 
 @SuppressLint("ViewModelConstructorInComposable")

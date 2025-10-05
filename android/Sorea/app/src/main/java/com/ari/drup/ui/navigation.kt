@@ -30,6 +30,7 @@ import com.ari.drup.ui.screens.onboarding.RegisterUserScreen
 import com.ari.drup.ui.screens.onboarding.SignInScreen
 import com.ari.drup.ui.screens.onboarding.WaitingScreen
 import com.ari.drup.viewmodels.GroupChatViewModel
+import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.regState
@@ -44,6 +45,7 @@ fun NavGraph (
     mainChatViewModel: MainChatViewModel,
     chatViewModel : GroupChatViewModel,
               vm : OnboardingViewModel,
+    homeScreenViewModel: HomeScreenViewModel,
               navHostController: NavHostController,
               context : Context,
               web_client_id: String,
@@ -69,7 +71,7 @@ fun NavGraph (
     NavHost(navController = navHostController, startDestination = startDestination) {
 
         composable(route = Screen.mainChatScreen.route) {
-            MainChatScreen(mainChatViewModel = mainChatViewModel, modifier)
+            MainChatScreen(homeScreenViewModel,mainChatViewModel = mainChatViewModel, modifier)
         }
 
         composable(route = Screen.chatScreen.route) {
@@ -78,7 +80,7 @@ fun NavGraph (
 
 
         composable(route = Screen.holderScreen.route) {
-            HolderScreen(context,vm,chatViewModel,mainChatViewModel,navHostController,modifier)
+            HolderScreen(context,vm,chatViewModel,mainChatViewModel,homeScreenViewModel,navHostController,modifier)
         }
 
 

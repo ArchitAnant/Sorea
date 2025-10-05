@@ -22,10 +22,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.ari.drup.data.FirebaseManager
+import com.ari.drup.notification.createNotificationChannel
 import com.ari.drup.ui.NavGraph
 import com.ari.drup.ui.theme.DrupTheme
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.GroupChatViewModel
+import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 
 
@@ -44,6 +46,7 @@ class MainActivity : ComponentActivity() {
 //                Color.Black.hashCode()
             )
         )
+        createNotificationChannel(this)
 
         val firebaseManager = FirebaseManager()
         setContent {
@@ -51,7 +54,8 @@ class MainActivity : ComponentActivity() {
                 val navHostController = rememberNavController()
                 val vm = OnboardingViewModel(firebaseManager,navHostController)
                 val chatViewModel = GroupChatViewModel(vm,firebaseManager)
-                val mainChatViewModel = MainChatViewModel(vm,firebaseManager)
+                val homeScreenViewModel = HomeScreenViewModel(firebaseManager,vm)
+                val mainChatViewModel = MainChatViewModel(vm,homeScreenViewModel,firebaseManager)
                 Scaffold(modifier = Modifier
                     .background(Color.Black)
                     .fillMaxSize()) { innerPadding ->
@@ -60,6 +64,7 @@ class MainActivity : ComponentActivity() {
                         chatViewModel = chatViewModel,
                         vm = vm,
                         navHostController = navHostController,
+                        homeScreenViewModel = homeScreenViewModel,
                         context = this,
                         web_client_id = BuildConfig.WEB_CLIENT_ID,
                         modifier = Modifier

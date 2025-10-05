@@ -45,6 +45,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ari.drup.baseDark
+import com.ari.drup.mainAccent
+import com.ari.drup.mainLight
 import com.ari.drup.semibold_font
 
 val mainColor = Color.Black
@@ -62,7 +65,7 @@ fun BottomNavigation(
         modifier = Modifier
 //            .fillMaxWidth()
             .clip(RoundedCornerShape(50.dp))
-            .background(backColor)
+            .background(mainAccent)
             .padding(horizontal = 16.dp, vertical = 10.dp)
         ,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -112,7 +115,7 @@ fun BottomNavigation(
                         Icon(
                             imageVector = icon,
                             contentDescription = text,
-                            tint = iconTint,
+                            tint = baseDark,
                             modifier = Modifier.size(24.dp)
                         )
 
@@ -120,7 +123,7 @@ fun BottomNavigation(
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = text,
-                                color = mainColor,
+                                color = baseDark,
                                 fontFamily = semibold_font,
                                 fontSize = 12.sp
                             )

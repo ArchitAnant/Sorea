@@ -12,18 +12,18 @@ import com.ari.drup.data.mainchat.AzureQuery
 import com.ari.drup.data.mainchat.Response
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.collections.mapNotNull
 
 class MainChatViewModel(
     private val onboardingViewModel: OnboardingViewModel,
+    private val homeScreenViewModel: HomeScreenViewModel,
     private val firebaseManager: FirebaseManager
 ): ViewModel() {
-
-    private val _chatList = MutableStateFlow<List<String>>(mutableListOf())
-    val chatList = _chatList.asStateFlow()
 
     private val _selectedChat = MutableStateFlow<String?>(null)
     val selectedChat = _selectedChat.asStateFlow()
@@ -34,22 +34,27 @@ class MainChatViewModel(
     private val _chatState = MutableStateFlow<ApiState<Response>>(ApiState.Idle)
     val chatState  = _chatState.asStateFlow()
 
+
+
     fun resetResponseState() {
         _chatState.value = ApiState.Idle // or null if you prefer
     }
-    fun initializeChatScreen() {
-        fetchChatNames() // triggers async update
+    fun clearChats(){
+        _chats.value = mutableListOf()
+    }
 
-        viewModelScope.launch {
-            chatList.collect { list ->
-                val today = list.getTodayIfPresent()
-                if (!today.isNullOrBlank()) {
-                    selectChat(today)
-                    fetchChats()
-                }
+    fun observeChat(){
+        if (!selectedChat.value.isNullOrBlank()){
+            firebaseManager.listenToMessages(
+                onboardingViewModel.currentUserEmail!!,
+                selectedChat.value!!
+            ){
+                Log.d("FirebaseListener","Got a new chat!")
+                _chats.value = it
             }
         }
     }
+
 
 
     fun fetchChats() {
@@ -75,27 +80,9 @@ class MainChatViewModel(
         }
     }
 
-    fun fetchChatNames() {
-        viewModelScope.launch {
-            val fetchedChatNames = firebaseManager.fetchAllChatNames(onboardingViewModel.currentUserEmail!!)
 
-            // Sort chat names as dates
-            val sortedChatNames = fetchedChatNames.sortedByDescending { chatName ->
-                try {
-                    val formatter = java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy")
-                    java.time.LocalDate.parse(chatName, formatter)
-                } catch (e: Exception) {
-                    // fallback if parsing fails, use MIN so invalid dates go last
-                    java.time.LocalDate.MIN
-                }
-            }
 
-            _chatList.value = sortedChatNames
-            Log.d("MainChatViewModel", "Chat names fetched and sorted: ${chatList.value}")
-        }
-    }
-
-    fun selectChat(chatName: String) {
+    fun selectChat(chatName: String?) {
         _selectedChat.value = chatName
     }
     fun getSelectedChat(): String {
@@ -118,6 +105,7 @@ class MainChatViewModel(
         viewModelScope.launch {
 
             try {
+                Log.d("SendMess", "Sending message for email : ${onboardingViewModel.currentUserEmail}")
                 val request = AzureQuery(onboardingViewModel.currentUserEmail!!,message)
                 val response = AzureClient().chatApi.sendMessage(BuildConfig.AZURE_KEY, request)
                 _chatState.value = ApiState.Success(response)
@@ -125,11 +113,6 @@ class MainChatViewModel(
                 _chatState.value = ApiState.Failed(e.localizedMessage ?: "Unknown error")
             }
         }
-    }
-    fun appendMess(messDao: MessDao) {
-        _chats.value = _chats.value + messDao
-        fetchChats()
-        fetchChatNames()
     }
 
 
@@ -145,12 +128,5 @@ class MainChatViewModel(
         }
     }
 
-    fun List<String>.getTodayIfPresent(): String? {
-        val formatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.getDefault())
-        val today = LocalDate.now().format(formatter)
 
-        return this.find { raw ->
-            raw.lowercase().removePrefix("conv_").trim() == today
-        }
-    }
 }

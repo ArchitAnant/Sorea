@@ -1,6 +1,0 @@
-protobuf
-psycopg2-binary
-python-dotenv
-websockets
-google-auth
-requests
