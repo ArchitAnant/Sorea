@@ -19,8 +19,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ari.drup.R
+import com.ari.drup.baseDark
+import com.ari.drup.darkAccent
 import com.ari.drup.data.mainchat.MessDao
 import com.ari.drup.data.User
+import com.ari.drup.mainAccent
+import com.ari.drup.mainLight
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.google.firebase.Timestamp
@@ -31,7 +35,7 @@ import java.util.Locale
 
 @Composable
 fun SystemChat(message: String, modifier: Modifier = Modifier) {
-    Box(modifier=modifier.background(Color.White.copy(0.1f),
+    Box(modifier=modifier.background(baseDark.copy(0.6f),
         shape = RoundedCornerShape(topEnd = 20.dp, topStart = 20.dp, bottomEnd = 20.dp,))) {
         Column {
             Text(
@@ -39,14 +43,14 @@ fun SystemChat(message: String, modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(start = 15.dp,
                     top = 10.dp),
                 fontFamily = semibold_font,
-                color = Color.White.copy(0.4f),
+                color = mainAccent,
                 fontSize = 15.sp
             )
             MarkdownText(
                 markdown = message,
                 fontResource = R.font.tweb_regular,
                 style = TextStyle(
-                    color = Color.White,
+                    color = mainLight,
                     fontSize = 16.sp
                 ),
                 modifier = Modifier.padding(15.dp),
@@ -56,7 +60,8 @@ fun SystemChat(message: String, modifier: Modifier = Modifier) {
 }
 @Composable
 fun UserChat(message: String,modifier: Modifier = Modifier) {
-    Box(modifier=modifier.background(Color.White.copy(0.03f),
+    Box(modifier=modifier.background(
+        Color.White.copy(0.05f),
         shape = RoundedCornerShape(topEnd = 20.dp, topStart = 20.dp, bottomStart = 20.dp,))) {
         Column(horizontalAlignment = Alignment.End) {
             Text(
@@ -64,14 +69,14 @@ fun UserChat(message: String,modifier: Modifier = Modifier) {
                 modifier = Modifier.padding(end = 15.dp,
                     top = 10.dp),
                 fontFamily = semibold_font,
-                color = Color.White.copy(0.4f),
+                color = mainAccent,
                 fontSize = 15.sp
             )
             MarkdownText(
                 markdown = message,
                 fontResource = R.font.tweb_regular,
                 style = TextStyle(
-                    color = Color.White,
+                    color = mainLight,
                     fontSize = 16.sp
                 ),
                 modifier = Modifier.padding(15.dp),
@@ -94,7 +99,7 @@ fun ChatPrev(messDao: MessDao, modifier: Modifier = Modifier) {
             modifier = Modifier.padding(end = 15.dp,
                 top = 10.dp),
             fontFamily = regular_font,
-            color = Color.White.copy(0.4f),
+            color = mainLight.copy(0.4f),
             fontSize = 15.sp
         )
     }

@@ -38,7 +38,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.ari.drup.R
 import com.ari.drup.data.community.Community
+import com.ari.drup.mainLight
 import com.ari.drup.regular_font
+import com.ari.drup.ui.components.CreateChannelButton
 import com.ari.drup.viewmodels.GroupChatViewModel
 
 @Composable
@@ -51,7 +53,7 @@ fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, S
 
         Text(
             text = "Community",
-            color = Color.White,
+            color = mainLight,
             fontFamily = regular_font,
             fontSize = 40.sp
         )
@@ -62,7 +64,7 @@ fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, S
         Spacer(Modifier.height(50.dp))
         Text(
             text = "Joined Communities",
-            color = Color.White.copy(0.7f),
+            color = mainLight.copy(0.7f),
             fontFamily = regular_font,
             fontSize = 20.sp
         )
@@ -88,33 +90,6 @@ fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, S
     }
 }
 
-@Composable
-fun CreateChannelButton(onCreateClick: () -> Unit = {}) {
-    Button(onClick = onCreateClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(0.3f))
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 10.dp),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Icon(Icons.Default.Add,
-                contentDescription = "",
-                modifier = Modifier.size(20.dp),
-                tint = Color.White
-            )
-            Text(
-                text = "Create Community",
-                color = Color.White,
-                fontFamily = regular_font,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(start = 5.dp)
-            )
-
-        }
-    }
-}
 
 @Composable
 fun CommunityItem(displayCommunity: Community,
@@ -147,14 +122,14 @@ fun CommunityItem(displayCommunity: Community,
             Column {
                 Text(
                     text = displayCommunity.title,
-                    color = Color.White,
+                    color = mainLight,
                     fontFamily = regular_font,
                     fontSize = 18.sp,
                     modifier = Modifier.padding(start = 5.dp)
                 )
                 Text(
                     text = displayCommunity.desc,
-                    color = Color.White.copy(0.5f),
+                    color = mainLight.copy(0.5f),
                     fontFamily = regular_font,
                     fontSize = 15.sp,
                     modifier = Modifier.padding(start = 5.dp)
@@ -164,7 +139,7 @@ fun CommunityItem(displayCommunity: Community,
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "",
-                tint = Color.White.copy(0.5f)
+                tint = mainLight
             )
         }
 

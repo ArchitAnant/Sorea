@@ -39,6 +39,7 @@ import com.ari.drup.ui.Screen
 import com.ari.drup.ui.components.BottomNavigation
 import com.ari.drup.ui.screens.communitychat.CommunityPage
 import com.ari.drup.viewmodels.GroupChatViewModel
+import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.regState
@@ -50,8 +51,8 @@ fun HolderScreen(
     onboardingViewModel: OnboardingViewModel,
     chatViewModel : GroupChatViewModel,
     mainChatViewModel: MainChatViewModel,
+    homeScreenViewModel: HomeScreenViewModel,
     navHostController: NavHostController,
-
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf("Home") }
@@ -72,29 +73,14 @@ fun HolderScreen(
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             permissionLauncher.launch(Manifest.permission.SCHEDULE_EXACT_ALARM)
         }
-        mainChatViewModel.initializeChatScreen()
+        homeScreenViewModel.initializeChatScreen{today->
+            mainChatViewModel.selectChat(today)
+        }
+        mainChatViewModel.observeChat()
     }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            if (selectedTab=="Home") {
-                Row(modifier = modifier.fillMaxWidth().padding(20.dp)) {
-                    Spacer(modifier = Modifier.weight(2f))
-                    IconButton(onClick = {
-                        navHostController.navigate(Screen.mainChatScreen.route)
-                    }) {
-                        Icon(
-                            Icons.Outlined.BubbleChart,
-                            contentDescription = "",
-                            tint = Color.White,
-                            modifier = Modifier.size(25.dp)
-                        )
-                    }
-
-                }
-            }
-        },
         bottomBar = {
             Box(
                 modifier = modifier.fillMaxWidth().padding(vertical = 10.dp),
@@ -119,7 +105,7 @@ fun HolderScreen(
 
             // Content based on selected tab
             when (selectedTab) {
-                "Home" -> HomeScreen(modifier)
+                "Home" -> HomeScreen(onboardingViewModel,homeScreenViewModel,mainChatViewModel,navHostController,modifier)
                 "Community" -> CommunityPage(
                     chatViewModel, { id, title ->
                     chatId = id
@@ -133,7 +119,9 @@ fun HolderScreen(
                         }
                     }, modifier
                 )
-                "Profile" -> ProfileScreen(onboardingViewModel.currUser!!){
+                "Profile" -> ProfileScreen(onboardingViewModel.currUser!!, modifier,onPushNotification = {
+//                    scheduleDailyNotification(context)
+                }){
                     onboardingViewModel.currUser = null
                     onboardingViewModel.currentUserEmail = null
                     onboardingViewModel.changeRegisteredState(regState.waiting)

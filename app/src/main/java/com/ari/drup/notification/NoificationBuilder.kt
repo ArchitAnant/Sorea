@@ -24,7 +24,7 @@ const val NOTIFICATION_ID = 0
 fun createNotificationChannel(context: Context) {
     val name = "channel_name"
     val descriptionText = "No description"
-    val importance = NotificationManager.IMPORTANCE_DEFAULT
+    val importance = NotificationManager.IMPORTANCE_HIGH
     val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
         description = descriptionText
     }
@@ -36,7 +36,7 @@ fun createNotificationChannel(context: Context) {
     notificationManager.createNotificationChannel(channel)
 }
 
-fun getNotificationBuilder(context: Context, message: String) : NotificationCompat.Builder {
+fun getNotificationBuilder(context: Context, username: String, message: String) : NotificationCompat.Builder {
     val intent = Intent(context, MainActivity::class.java).apply {
         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
     }
@@ -44,7 +44,7 @@ fun getNotificationBuilder(context: Context, message: String) : NotificationComp
 
     return NotificationCompat.Builder(context, CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_launcher_foreground)
-        .setContentTitle("Hi!")
+        .setContentTitle("Hi $username!")
         .setContentText(message)
         .setContentIntent(pendingIntent)
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)

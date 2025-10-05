@@ -11,6 +11,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ari.drup.darkAccent
+import com.ari.drup.mainAccent
+import com.ari.drup.mainLight
 import com.ari.drup.regular_font
 
 
@@ -26,22 +29,22 @@ fun ChatBox(message: String,
         placeholder = {
             Text(
                 text="Type your message here",
-                color = Color.White.copy(0.3f),
+                color = mainLight.copy(0.3f),
                 fontFamily = regular_font,
                 fontSize = 18.sp
             )
         },
         modifier = modifier.fillMaxWidth(0.85f),
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.White,
+            focusedTextColor = mainLight,
             unfocusedTextColor = Color.Transparent,
-            focusedContainerColor = Color.White.copy(0.3f),
-            unfocusedContainerColor = Color.White.copy(0.3f),
-            focusedLabelColor = Color.White,
-            focusedIndicatorColor = Color.White,
+            focusedContainerColor = darkAccent.copy(0.7f),
+            unfocusedContainerColor = darkAccent.copy(0.7f),
+            focusedLabelColor = darkAccent,
+            focusedIndicatorColor = darkAccent,
             unfocusedIndicatorColor = Color.Transparent,
-            unfocusedLeadingIconColor = Color.White,
-            focusedLeadingIconColor = Color.White,
+            unfocusedLeadingIconColor = darkAccent,
+            focusedLeadingIconColor = darkAccent,
 
             ),
         shape = RoundedCornerShape(40.dp),
