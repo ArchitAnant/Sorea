@@ -1,3 +1,6 @@
 [submodule "MyBro"]
 	path = MyBro
 	url = https://github.com/Jit-Roy/MyBro
+[submodule "websocket_web_server"]
+	path = websocket_web_server
+	url = https://github.com/Aritrahutait07/websocket_web_server.git
