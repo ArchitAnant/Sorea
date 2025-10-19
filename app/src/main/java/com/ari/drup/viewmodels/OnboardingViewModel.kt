@@ -3,6 +3,7 @@ package com.ari.drup.viewmodels
 import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.Color
 import androidx.credentials.Credential
 import androidx.credentials.CustomCredential
 import androidx.lifecycle.ViewModel
@@ -10,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavHostController
 import com.ari.drup.data.FirebaseManager
 import com.ari.drup.data.User
+import com.ari.drup.mainLight
 import com.ari.drup.ui.Screen
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
@@ -36,17 +38,8 @@ class OnboardingViewModel (
     var currUser : User? = null
     var firebaseIdToken:String? = null
 
-
     private val _successRegistered = MutableStateFlow(mutableStateOf(regState.waiting))
     var successRegistered = _successRegistered.asStateFlow()
-
-//    fun setUser(user: User){
-//        currUser = user;
-//    }
-//
-//    fun getUser() : User?{
-//        return currUser;
-//    }
 
     fun  onGetCredentialResponse(context: Context, credential: Credential){
         viewModelScope.launch {
@@ -54,12 +47,14 @@ class OnboardingViewModel (
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 val firebaseCred = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken,null)
                 val authResult = Firebase.auth.signInWithCredential(firebaseCred).await()
+
                 currentUserEmail = authResult.user?.email
                 Log.d("credential",currentUserEmail.toString())
+
                 if (currentUserEmail != null) {
                     navHostController.navigate(Screen.onBoardWait.route)
                     if (isUserRegistered(currentUserEmail.toString())){
-                        currUser = firebaseManager.getRegisteredUser(currentUserEmail.toString())
+                        currUser = firebaseManager.getRegisteredUser(currentUserEmail!!)
                         _successRegistered.value.value = regState.success
                         //log the user for debug
                         pushUserToCache(context,currUser!!,currentUserEmail.toString())
@@ -84,7 +79,7 @@ class OnboardingViewModel (
             FirebaseAuth.getInstance().currentUser?.getIdToken(true)
                 ?.addOnSuccessListener { result ->
                     firebaseIdToken = result.token
-                    Log.d("reg_user", firebaseIdToken.toString())
+//                    Log.d("reg_user", firebaseIdToken.toString())
                 }
 
     }
@@ -104,6 +99,32 @@ class OnboardingViewModel (
             return true
         }
         return false
+    }
+
+     fun checkUsername(username: String): Boolean{
+         var userState = false
+        viewModelScope.launch {
+            val exists = firebaseManager.checkValidUsername(username)
+            if (exists) {
+
+                Log.d("Firestore", "Username already exists")
+            } else {
+                userState = true
+                Log.d("Firestore", "Username available")
+            }
+        }
+         return userState
+    }
+
+    fun clearUsernames(){
+        firebaseManager.clearAllUsers()
+    }
+
+    fun getRegisteredUser(email: String){
+        viewModelScope.launch {
+            currUser = firebaseManager.getRegisteredUser(email)
+            Log.d("user_fetch",currUser.toString())
+        }
     }
 
 

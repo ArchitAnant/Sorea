@@ -30,11 +30,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ari.drup.mainAccent
+import com.ari.drup.mainLight
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.Screen
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.regState
+import com.google.accompanist.systemuicontroller.SystemUiController
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -42,6 +45,7 @@ import kotlinx.coroutines.delay
 fun WaitingScreen(
     loadNextScreen: (Boolean) -> Unit,
     vm: OnboardingViewModel,
+    uiController: SystemUiController,
     modifier: Modifier = Modifier
 ) {
     val currRegState = vm.successRegistered.collectAsState().value
@@ -58,10 +62,16 @@ fun WaitingScreen(
     // Randomly pick a text every 1.5 seconds
     var currentTextIndex by remember { mutableIntStateOf(0) }
     LaunchedEffect(currRegState) {
+        uiController.setStatusBarColor(
+                color = Color.Black,
+                darkIcons = false
+            )
+
         while (currRegState.value == regState.waiting) {
             currentTextIndex = (0 until loadingTexts.size).random()
             delay(1500L)
         }
+
     }
 
     Box(
@@ -75,7 +85,7 @@ fun WaitingScreen(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    CircularProgressIndicator(color = Color.White)
+                    CircularProgressIndicator(color = mainAccent)
                     Spacer(modifier = Modifier.height(16.dp))
                     AnimatedContent(
                         targetState = loadingTexts[currentTextIndex],
@@ -85,7 +95,7 @@ fun WaitingScreen(
                     ) { text ->
                         Text(
                             text = text,
-                            color = Color.White.copy(0.7f),
+                            color = mainLight,//Color.White.copy(0.7f),
                             fontFamily = semibold_font,
                             fontSize = 16.sp,
                             textAlign = TextAlign.Center

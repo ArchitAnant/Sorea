@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ari.drup.R
+import com.ari.drup.mainAccent
 
 val avatars = listOf(R.drawable.avt_1,R.drawable.avt_2,R.drawable.avt_4,R.drawable.avt_5,R.drawable.avt_6,R.drawable.avt_7)
 @Composable
@@ -48,7 +49,7 @@ fun AvatarSelector(onSelectAvatar : (Int) -> Unit,
                 modifier = Modifier.clip(CircleShape).clickable{
                     selection = idx
                     onSelectAvatar(idx)
-                }.border(if (selection==idx) 3.dp else 0.dp, Color.Red, shape = CircleShape),
+                }.border(if (selection==idx) 5.dp else 0.dp, mainAccent, shape = CircleShape),
                 contentScale = ContentScale.Fit
             )
         }

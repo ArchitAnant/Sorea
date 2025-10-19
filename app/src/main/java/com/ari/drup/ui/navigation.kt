@@ -33,7 +33,9 @@ import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
+import com.ari.drup.viewmodels.ProfilePageViewModel
 import com.ari.drup.viewmodels.regState
+import com.google.accompanist.systemuicontroller.SystemUiController
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
@@ -46,9 +48,11 @@ fun NavGraph (
     chatViewModel : GroupChatViewModel,
               vm : OnboardingViewModel,
     homeScreenViewModel: HomeScreenViewModel,
+    profilePageViewModel: ProfilePageViewModel,
               navHostController: NavHostController,
               context : Context,
               web_client_id: String,
+              uiController : SystemUiController,
               modifier: Modifier
 ) {
     var startDestination by remember {  mutableStateOf(Screen.signin.route)}
@@ -60,9 +64,11 @@ fun NavGraph (
             vm.currUser = user
             vm.currentUserEmail = email
             startDestination = Screen.holderScreen.route
+
         } else {
             startDestination = Screen.signin.route
         }
+
     }
     var chatId by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
@@ -80,13 +86,17 @@ fun NavGraph (
 
 
         composable(route = Screen.holderScreen.route) {
-            HolderScreen(context,vm,chatViewModel,mainChatViewModel,homeScreenViewModel,navHostController,modifier)
+            LaunchedEffect(Unit) {
+
+                    vm.getRegisteredUser(vm.currentUserEmail!!)
+
+            }
+            HolderScreen(context,vm,chatViewModel,mainChatViewModel,homeScreenViewModel,profilePageViewModel,navHostController,uiController,modifier)
         }
 
 
         composable(route = Screen.signin.route) {
-            SignInScreen({
-
+            SignInScreen(uiController,{
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setFilterByAuthorizedAccounts(false)
                     .setServerClientId(web_client_id)
@@ -121,6 +131,8 @@ fun NavGraph (
         }
         composable(route=Screen.registerUser.route){
             RegisterUserScreen({
+                vm.checkUsername(it)
+            },{
                 coroutineScope.launch {
                     vm.navigateWaitingScreen()
                     if (vm.registerNewUser(it)){
@@ -144,7 +156,7 @@ fun NavGraph (
                 }else{
                     navHostController.navigate(Screen.signin.route)
                 }
-            },vm,modifier)
+            },vm,uiController,modifier)
         }
 
     }

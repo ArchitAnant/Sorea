@@ -7,13 +7,15 @@ import com.ari.drup.data.mainchat.MessDao
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
 import com.google.type.DateTime
 import kotlinx.coroutines.tasks.await
+import kotlin.collections.mapOf
 
 class FirebaseManager {
     private val db = Firebase.firestore
-
+    private var allUsernames = emptyList<String>()
     suspend fun checkRegisteredUsers(email: String): Boolean{
         return try {
             val document = db.collection("users")
@@ -33,6 +35,10 @@ class FirebaseManager {
             db.collection("users")
                 .document(email)
                 .set(newUser)
+                .await()
+            db.collection("users")
+                .document("all")
+                .set(mapOf(newUser.username to email), SetOptions.merge())
                 .await()
             true
         }
@@ -157,5 +163,21 @@ class FirebaseManager {
                 onNewMessage(messages)
             }
     }
+
+    suspend fun checkValidUsername(username: String): Boolean {
+        if (allUsernames.isEmpty()) {
+            val document = db.collection("users").document("all").get().await()
+            allUsernames = document.data?.keys?.toList() ?: emptyList()
+        }
+        return username in allUsernames
+    }
+
+    fun changeVisibilityLevel(email:String,visibility:Int){
+        db.collection("users").document(email).update("visibility",visibility)
+    }
+    fun clearAllUsers(){
+        allUsernames = emptyList()
+    }
+
 }
 

@@ -82,7 +82,7 @@ fun HomeScreen(
         topBar = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = modifier.padding(vertical = 10.dp)
+                    modifier = modifier.padding(vertical = 25.dp)
                 ) {
                     Image(
                         painterResource(avatars[onboardingViewModel.currUser!!.avatar]),
@@ -104,7 +104,7 @@ fun HomeScreen(
         containerColor = Color.Black
     ) {  innerPadding->
         Box(modifier = Modifier
-            .padding()
+            .padding(top=10.dp)
             .fillMaxSize(),
             contentAlignment = Alignment.Center
         ){
@@ -231,4 +231,5 @@ fun StreakPrev(
 @Preview
 @Composable
 private fun HomeScreenPrev() {
+//    HomeScreen()
 }

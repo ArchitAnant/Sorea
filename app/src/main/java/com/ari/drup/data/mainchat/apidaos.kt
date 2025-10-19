@@ -10,3 +10,12 @@ data class Response(
     val message : String,
     val timestamp: String
 )
+
+data class NotifApi(
+    val email: String
+)
+
+data class NotifRes(
+    val notification: String,
+    val timestamp: String
+)
