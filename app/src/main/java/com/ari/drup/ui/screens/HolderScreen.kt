@@ -35,6 +35,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
+import com.ari.drup.notification.cancelAllScheduledNotifications
+import com.ari.drup.notification.cancelAllTestNotifications
 import com.ari.drup.notification.scheduleNotificationAt
 import com.ari.drup.ui.Screen
 import com.ari.drup.ui.components.BottomNavigation
@@ -67,7 +69,6 @@ fun HolderScreen(
             color = Color.Black,
             darkIcons = false
         )
-        scheduleNotificationAt(context, Timestamp(Date(System.currentTimeMillis() + 30_000)))
     }
 
 
@@ -126,7 +127,7 @@ fun HolderScreen(
 
             // Content based on selected tab
             when (selectedTab) {
-                "Home" -> HomeScreen(onboardingViewModel,homeScreenViewModel,mainChatViewModel,navHostController,modifier)
+                "Home" -> HomeScreen(context,onboardingViewModel,homeScreenViewModel,mainChatViewModel,navHostController,modifier)
                 "Community" -> CommunityPage(
                     chatViewModel, { id, title ->
                     chatId = id
@@ -149,7 +150,8 @@ fun HolderScreen(
                     scope.launch {
                         UserCache.clearUser(context)
                     }
-
+                    cancelAllScheduledNotifications(context)
+                    cancelAllTestNotifications(context)
                 }
             }
         }

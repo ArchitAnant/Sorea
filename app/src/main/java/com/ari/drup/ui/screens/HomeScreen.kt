@@ -1,6 +1,7 @@
 package com.ari.drup.ui.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -51,6 +52,7 @@ import com.ari.drup.baseDark
 import com.ari.drup.data.FirebaseManager
 import com.ari.drup.mainAccent
 import com.ari.drup.mainLight
+import com.ari.drup.notification.scheduleNotificationAt
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.Screen
@@ -59,7 +61,9 @@ import com.ari.drup.ui.components.avatars
 import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
+import java.util.Date
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -67,6 +71,7 @@ import kotlin.math.sin
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
+    context: Context,
     onboardingViewModel: OnboardingViewModel,
     homeScreenViewModel: HomeScreenViewModel,
     mainChatViewModel: MainChatViewModel,
@@ -167,6 +172,8 @@ fun HomeScreen(
                             mainChatViewModel.selectChat(null)
                             mainChatViewModel.clearChats()
                         }
+                        val twoHoursLater = System.currentTimeMillis() + 2 * 60 * 60 * 1000
+                        scheduleNotificationAt(context, Timestamp(Date(twoHoursLater)))
 
                     }
                 }
