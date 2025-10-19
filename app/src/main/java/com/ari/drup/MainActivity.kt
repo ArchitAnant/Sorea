@@ -30,6 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.ari.drup.data.FirebaseManager
+import com.ari.drup.data.notification.RealtimeManager
 import com.ari.drup.notification.cancelAllTestNotifications
 import com.ari.drup.notification.createNotificationChannel
 import com.ari.drup.ui.NavGraph
@@ -38,6 +39,7 @@ import com.ari.drup.ui.theme.DrupTheme
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.HomeScreenViewModel
+import com.ari.drup.viewmodels.NotificationViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.ProfilePageViewModel
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -53,6 +55,7 @@ class MainActivity : ComponentActivity() {
         createNotificationChannel(this)
 
         val firebaseManager = FirebaseManager()
+        val realtimeManager = RealtimeManager()
         setContent {
 
             DrupTheme {
@@ -62,6 +65,7 @@ class MainActivity : ComponentActivity() {
                 val homeScreenViewModel = HomeScreenViewModel(firebaseManager,vm)
                 val mainChatViewModel = MainChatViewModel(vm,firebaseManager)
                 val profilePageViewModel = ProfilePageViewModel(firebaseManager,vm)
+                val notificationViewModel = NotificationViewModel(realtimeManager,firebaseManager)
 
 //                val topBarColor by vm.topBarColor.collectAsState()
 
@@ -93,6 +97,7 @@ class MainActivity : ComponentActivity() {
                         navHostController = navHostController,
                         homeScreenViewModel = homeScreenViewModel,
                         profilePageViewModel = profilePageViewModel,
+                        notificationViewModel = notificationViewModel,
                         context = this,
                         web_client_id = BuildConfig.WEB_CLIENT_ID,
                         uiController=  systemUiController,

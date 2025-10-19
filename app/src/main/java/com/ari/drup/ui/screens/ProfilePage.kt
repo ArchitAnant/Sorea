@@ -44,6 +44,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +70,7 @@ import androidx.compose.ui.unit.sp
 import com.ari.drup.R
 import com.ari.drup.baseDark
 import com.ari.drup.data.FirebaseManager
+import com.ari.drup.data.Friend
 import com.ari.drup.data.User
 import com.ari.drup.mainAccent
 import com.ari.drup.mainLight
@@ -76,6 +78,7 @@ import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.Screen
 import com.ari.drup.ui.components.ChatSoreaButton
+import com.ari.drup.ui.components.FriendList
 import com.ari.drup.ui.components.SignOutButton
 import com.ari.drup.ui.components.avatars
 import com.ari.drup.viewmodels.OnboardingViewModel
@@ -91,6 +94,7 @@ import kotlin.math.sin
 fun ProfileScreen(
     profilePageViewModel: ProfilePageViewModel,
     modifier: Modifier = Modifier,
+    onAddFriendClick:()-> Unit,
     onSignOut:()-> Unit
 ) {
     var user = profilePageViewModel.user!!
@@ -99,6 +103,7 @@ fun ProfileScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val friends = profilePageViewModel.friendList.collectAsState()
 
     Scaffold (
         snackbarHost = {
@@ -152,6 +157,31 @@ fun ProfileScreen(
             },expanded,{
                 expanded = !expanded
             })
+            Spacer(modifier = Modifier.height(40.dp))
+            Text(
+                text = "Friends",
+                color = mainLight.copy(0.8f),
+                fontFamily = regular_font,
+                fontSize = 25.sp,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (selectedLevel>0) {
+                val friendList = mutableListOf(Friend("", "", -1))+friends.value
+                FriendList(friendList){
+                    onAddFriendClick()
+                }
+            }
+            else {
+                Text(
+                    text = "Switch to Closed or Open mode to see or add friends",
+                    color = mainLight.copy(0.4f),
+                    fontFamily = regular_font,
+                    fontSize = 15.sp,
+                    textAlign = TextAlign.Center,
+                    modifier= Modifier.padding(vertical = 20.dp)
+                )
+            }
         }
     }
 

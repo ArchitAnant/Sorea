@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -173,11 +174,31 @@ fun SignOutButton(onSignOut:()-> Unit, modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+fun AddFriendButton(modifier: Modifier = Modifier,onButtonClick: () -> Unit) {
+    Button(
+        onClick = {onButtonClick()},
+        modifier = Modifier.size(80.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = mainLight.copy(0.2f)),
+        shape = CircleShape,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Icon(
+            Icons.Default.Add,
+            contentDescription = "",
+            modifier = Modifier.size(30.dp),
+            tint = mainLight
+        )
+    }
+}
+
 
 
 
 @Preview
 @Composable
 private fun ButtonsPrev() {
-    SignOutButton({})
+    AddFriendButton {
+
+    }
 }

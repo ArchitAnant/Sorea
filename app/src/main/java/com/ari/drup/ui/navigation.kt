@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,9 +23,12 @@ import androidx.credentials.exceptions.NoCredentialException
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.ari.drup.data.Notifications
 import com.ari.drup.data.User
+import com.ari.drup.ui.screens.AddFriendScreen
 import com.ari.drup.ui.screens.communitychat.ChatScreen
 import com.ari.drup.ui.screens.HolderScreen
+import com.ari.drup.ui.screens.NotificationScreen
 import com.ari.drup.ui.screens.mainchat.MainChatScreen
 import com.ari.drup.ui.screens.onboarding.RegisterUserScreen
 import com.ari.drup.ui.screens.onboarding.SignInScreen
@@ -32,6 +36,7 @@ import com.ari.drup.ui.screens.onboarding.WaitingScreen
 import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
+import com.ari.drup.viewmodels.NotificationViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.ProfilePageViewModel
 import com.ari.drup.viewmodels.regState
@@ -49,6 +54,7 @@ fun NavGraph (
               vm : OnboardingViewModel,
     homeScreenViewModel: HomeScreenViewModel,
     profilePageViewModel: ProfilePageViewModel,
+    notificationViewModel: NotificationViewModel,
               navHostController: NavHostController,
               context : Context,
               web_client_id: String,
@@ -158,6 +164,22 @@ fun NavGraph (
                 }
             },vm,uiController,modifier)
         }
+        composable(route= Screen.notification.route) {
+            val temp1 = Notifications("ari_archit")
+            val temp2 = Notifications("ari_")
+            val temp3 = Notifications("ariiii")
+            val temp4 = Notifications("nahhh")
+            val notificationList = remember { mutableStateListOf(temp1, temp2, temp3, temp4) }
+
+            NotificationScreen(
+                notificationViewModel,vm.currUser!!.username,vm.currentUserEmail!!,modifier
+            )
+        }
+        composable (route= Screen.addFriend.route){
+            AddFriendScreen(profilePageViewModel){
+                navHostController.navigate(Screen.holderScreen.route)
+            }
+        }
 
     }
 }
@@ -167,11 +189,11 @@ fun NavGraph (
 sealed class Screen(val route:String){
     object mainChatScreen: Screen(route = "main_chat_screen")
     object chatScreen: Screen(route = "chat_screen")
-
+    object notification : Screen(route = "notification_screen")
     object signin : Screen(route = "sign_in")
     object registerUser : Screen(route = "register_user_screen")
     object onBoardWait : Screen(route = "onboard_wait_screen")
-
+    object addFriend : Screen(route = "add_friend_screen")
     object holderScreen : Screen(route = "holder_screen")
 
 }

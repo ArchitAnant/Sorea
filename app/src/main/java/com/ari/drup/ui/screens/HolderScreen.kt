@@ -99,6 +99,7 @@ fun HolderScreen(
             mainChatViewModel.selectChat(today)
         }
         mainChatViewModel.observeChat()
+        profilePageViewModel.fetchFriendList()
     }
 
     Scaffold(
@@ -141,7 +142,9 @@ fun HolderScreen(
                         }
                     }, modifier
                 )
-                "Profile" -> ProfileScreen(profilePageViewModel, modifier){
+                "Profile" -> ProfileScreen(profilePageViewModel, modifier,{
+                    navHostController.navigate(Screen.addFriend.route)
+                }){
                     onboardingViewModel.currUser = null
                     onboardingViewModel.currentUserEmail = null
                     onboardingViewModel.changeRegisteredState(regState.waiting)

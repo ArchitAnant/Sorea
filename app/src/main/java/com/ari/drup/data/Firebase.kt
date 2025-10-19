@@ -6,6 +6,8 @@ import com.ari.drup.data.community.Community
 import com.ari.drup.data.mainchat.MessDao
 import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
@@ -166,8 +168,7 @@ class FirebaseManager {
 
     suspend fun checkValidUsername(username: String): Boolean {
         if (allUsernames.isEmpty()) {
-            val document = db.collection("users").document("all").get().await()
-            allUsernames = document.data?.keys?.toList() ?: emptyList()
+           setUsernames()
         }
         return username in allUsernames
     }
@@ -178,6 +179,59 @@ class FirebaseManager {
     fun clearAllUsers(){
         allUsernames = emptyList()
     }
+    suspend fun setUsernames(){
+        val document = db.collection("users").document("all").get().await()
+        allUsernames = document.data?.keys?.toList() ?: emptyList()
+    }
+
+    fun getUsernames(): List<String>{
+        return allUsernames
+    }
+
+    suspend fun addFriend( currentEmail: String, senderEmail: String) {
+        val userRef = db.collection("users").document(currentEmail)
+
+        try {
+            // Atomically add the new friend username to the list field "friends"
+            userRef.update("friends", FieldValue.arrayUnion(senderEmail))
+                .await() // suspend until the operation completes
+            Log.d("Firestore", "Friend added successfully: $senderEmail")
+        } catch (e: Exception) {
+            // If the "friends" field doesn’t exist yet, create it
+            if (e is FirebaseFirestoreException && e.code == FirebaseFirestoreException.Code.NOT_FOUND) {
+                userRef.set(mapOf("friends" to listOf(senderEmail)), SetOptions.merge())
+                    .await()
+                Log.d("Firestore", "Friend list created and friend added: $senderEmail")
+            } else {
+                Log.e("Firestore", "Error adding friend", e)
+            }
+        }
+    }
+
+    suspend fun getFriendList(email: String): MutableList<Friend> {
+        val friendList = mutableListOf<Friend>()
+
+        try {
+            val documentSnapshot = db.collection("users").document(email).get().await()
+            val friendEmails = documentSnapshot.get("friends") as? List<String> ?: emptyList()
+
+            for (friendEmail in friendEmails) {
+                val friendDocumentSnapshot = db.collection("users").document(friendEmail).get().await()
+                Log.d("FirebaseFriend","${friendDocumentSnapshot.getLong("avatar")?.toInt()}")
+                val friend = Friend(
+                    email = friendEmail,
+                    username = friendDocumentSnapshot.getString("username") ?: "",
+                    avatar = friendDocumentSnapshot.getLong("avatar")?.toInt() ?: 0
+                )
+                friendList.add(friend)
+            }
+        }
+        catch (e : Exception){
+            Log.e("FirebaseFriend","Error $e")
+        }
+        return friendList
+    }
+
 
 }
 

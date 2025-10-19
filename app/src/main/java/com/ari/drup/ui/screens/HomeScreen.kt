@@ -23,9 +23,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -85,10 +88,10 @@ fun HomeScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-                Row(
+            Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = modifier.padding(vertical = 25.dp)
-                ) {
+            ) {
                     Image(
                         painterResource(avatars[onboardingViewModel.currUser!!.avatar]),
                         contentDescription = null,
@@ -104,6 +107,13 @@ fun HomeScreen(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         fontSize = 18.sp
                     )
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = {
+                    navHostController.navigate(Screen.notification.route)
+                }) {
+                    Icon(Icons.Default.Notifications,
+                        contentDescription = "")
+                }
             }
         },
         containerColor = Color.Black
