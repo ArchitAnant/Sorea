@@ -11,6 +11,11 @@ interface ChatApi {
         @Body request: AzureQuery
     ): Response
 
+    @POST(value = "notification")
+    suspend fun getNotification(
+        @Query("code") apiKey: String,
+        @Body request: NotifApi
+    ): NotifRes
 }
 
 sealed class ApiState<out T> {

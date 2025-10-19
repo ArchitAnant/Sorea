@@ -8,5 +8,6 @@ data class User(
     val name : String = "",
     val avatar : Int = 0,
     val gender : String = "",
-    val age : Long? = null
+    val age : Long? = null,
+    val visibility: Int = 0
 )

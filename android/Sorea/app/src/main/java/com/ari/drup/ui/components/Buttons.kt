@@ -11,11 +11,13 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -34,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -147,11 +150,55 @@ fun ChatSoreaButton(onButtonClick: () -> Unit) {
     }
 }
 
+@Composable
+fun SignOutButton(onSignOut:()-> Unit, modifier: Modifier = Modifier) {
+    Button(onClick = {onSignOut()},
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        contentPadding = PaddingValues(0.dp)
+    ) {
+//        Row(
+//            verticalAlignment = Alignment.CenterVertically,
+//            modifier = Modifier.padding(vertical = 10.dp),
+//            horizontalArrangement = Arrangement.Center
+//        ) {
+            Text(
+                text = "Sign Out",
+                color = mainLight,
+                fontFamily = regular_font,
+                fontSize = 15.sp,
+                modifier = Modifier.padding(start = 5.dp),
+                textDecoration = TextDecoration.Underline
+            )
+
+//        }
+    }
+}
+
+@Composable
+fun AddFriendButton(modifier: Modifier = Modifier,onButtonClick: () -> Unit) {
+    Button(
+        onClick = {onButtonClick()},
+        modifier = Modifier.size(80.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = mainLight.copy(0.2f)),
+        shape = CircleShape,
+        contentPadding = PaddingValues(0.dp)
+    ) {
+        Icon(
+            Icons.Default.Add,
+            contentDescription = "",
+            modifier = Modifier.size(30.dp),
+            tint = mainLight
+        )
+    }
+}
+
 
 
 
 @Preview
 @Composable
 private fun ButtonsPrev() {
-    ChatSoreaButton {  }
+    AddFriendButton {
+
+    }
 }

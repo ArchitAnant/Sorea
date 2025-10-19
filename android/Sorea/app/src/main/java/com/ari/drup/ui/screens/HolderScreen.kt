@@ -35,6 +35,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
+import com.ari.drup.notification.cancelAllScheduledNotifications
+import com.ari.drup.notification.cancelAllTestNotifications
+import com.ari.drup.notification.scheduleNotificationAt
 import com.ari.drup.ui.Screen
 import com.ari.drup.ui.components.BottomNavigation
 import com.ari.drup.ui.screens.communitychat.CommunityPage
@@ -42,8 +45,12 @@ import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
+import com.ari.drup.viewmodels.ProfilePageViewModel
 import com.ari.drup.viewmodels.regState
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
+import java.util.Date
 
 @Composable
 fun HolderScreen(
@@ -52,13 +59,27 @@ fun HolderScreen(
     chatViewModel : GroupChatViewModel,
     mainChatViewModel: MainChatViewModel,
     homeScreenViewModel: HomeScreenViewModel,
+    profilePageViewModel: ProfilePageViewModel,
     navHostController: NavHostController,
+    uiController: SystemUiController,
     modifier: Modifier = Modifier
 ) {
+    LaunchedEffect(Unit) {
+        uiController.setStatusBarColor(
+            color = Color.Black,
+            darkIcons = false
+        )
+    }
+
+
     var selectedTab by remember { mutableStateOf("Home") }
     var chatId by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    profilePageViewModel.user = onboardingViewModel.currUser
+    profilePageViewModel.currentUserEmail = onboardingViewModel.currentUserEmail
+
+
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ){ isGranted ->
@@ -68,6 +89,7 @@ fun HolderScreen(
             Log.d("Permission", "Notification permission denied")
         }
     }
+
     LaunchedEffect(Unit) {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -77,6 +99,7 @@ fun HolderScreen(
             mainChatViewModel.selectChat(today)
         }
         mainChatViewModel.observeChat()
+        profilePageViewModel.fetchFriendList()
     }
 
     Scaffold(
@@ -105,7 +128,7 @@ fun HolderScreen(
 
             // Content based on selected tab
             when (selectedTab) {
-                "Home" -> HomeScreen(onboardingViewModel,homeScreenViewModel,mainChatViewModel,navHostController,modifier)
+                "Home" -> HomeScreen(context,onboardingViewModel,homeScreenViewModel,mainChatViewModel,navHostController,modifier)
                 "Community" -> CommunityPage(
                     chatViewModel, { id, title ->
                     chatId = id
@@ -119,17 +142,19 @@ fun HolderScreen(
                         }
                     }, modifier
                 )
-                "Profile" -> ProfileScreen(onboardingViewModel.currUser!!, modifier,onPushNotification = {
-//                    scheduleDailyNotification(context)
+                "Profile" -> ProfileScreen(profilePageViewModel, modifier,{
+                    navHostController.navigate(Screen.addFriend.route)
                 }){
                     onboardingViewModel.currUser = null
                     onboardingViewModel.currentUserEmail = null
                     onboardingViewModel.changeRegisteredState(regState.waiting)
+                    onboardingViewModel.clearUsernames()
                     navHostController.navigate(Screen.signin.route)
                     scope.launch {
                         UserCache.clearUser(context)
                     }
-
+                    cancelAllScheduledNotifications(context)
+                    cancelAllTestNotifications(context)
                 }
             }
         }

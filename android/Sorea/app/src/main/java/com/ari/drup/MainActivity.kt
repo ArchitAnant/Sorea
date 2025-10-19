@@ -5,30 +5,44 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.ari.drup.data.FirebaseManager
+import com.ari.drup.data.notification.RealtimeManager
+import com.ari.drup.notification.cancelAllTestNotifications
 import com.ari.drup.notification.createNotificationChannel
 import com.ari.drup.ui.NavGraph
+import com.ari.drup.ui.Screen
 import com.ari.drup.ui.theme.DrupTheme
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.HomeScreenViewModel
+import com.ari.drup.viewmodels.NotificationViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
+import com.ari.drup.viewmodels.ProfilePageViewModel
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 class MainActivity : ComponentActivity() {
@@ -36,26 +50,43 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("ViewModelConstructorInComposable")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(
-                Color.Black.hashCode(),
-//                Color.Black.hashCode()
-            ),
-            navigationBarStyle = SystemBarStyle.dark(
-                Color.Black.hashCode(),
-//                Color.Black.hashCode()
-            )
-        )
+
+
         createNotificationChannel(this)
 
         val firebaseManager = FirebaseManager()
+        val realtimeManager = RealtimeManager()
         setContent {
+
             DrupTheme {
                 val navHostController = rememberNavController()
                 val vm = OnboardingViewModel(firebaseManager,navHostController)
                 val chatViewModel = GroupChatViewModel(vm,firebaseManager)
                 val homeScreenViewModel = HomeScreenViewModel(firebaseManager,vm)
-                val mainChatViewModel = MainChatViewModel(vm,homeScreenViewModel,firebaseManager)
+                val mainChatViewModel = MainChatViewModel(vm,firebaseManager)
+                val profilePageViewModel = ProfilePageViewModel(firebaseManager,vm)
+                val notificationViewModel = NotificationViewModel(realtimeManager,firebaseManager)
+
+//                val topBarColor by vm.topBarColor.collectAsState()
+
+                // Remember system UI controller
+                val systemUiController = rememberSystemUiController()
+
+//                val targetRoute = remember { mutableStateOf(intent.getStringExtra("targetRoute") ?: Screen.mainChatScreen.route) }
+
+                // Navigate once the NavController is ready
+//                LaunchedEffect(targetRoute.value) {
+//                    // Only navigate if it's not the start destination
+//                    if (targetRoute.value != Screen.mainChatScreen.route) {
+//                        navHostController.navigate(targetRoute.value) {
+//                            popUpTo(navHostController.graph.startDestinationId) { inclusive = false }
+//                        }
+//                    }
+//                }
+//                LaunchedEffect(Unit) {
+//                    cancelAllTestNotifications(this@MainActivity)
+//                }
+
                 Scaffold(modifier = Modifier
                     .background(Color.Black)
                     .fillMaxSize()) { innerPadding ->
@@ -65,8 +96,11 @@ class MainActivity : ComponentActivity() {
                         vm = vm,
                         navHostController = navHostController,
                         homeScreenViewModel = homeScreenViewModel,
+                        profilePageViewModel = profilePageViewModel,
+                        notificationViewModel = notificationViewModel,
                         context = this,
                         web_client_id = BuildConfig.WEB_CLIENT_ID,
+                        uiController=  systemUiController,
                         modifier = Modifier
                             .padding(innerPadding)
                             .background(Color.Black)

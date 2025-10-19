@@ -1,6 +1,7 @@
 package com.ari.drup.ui.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,9 +23,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -51,6 +55,7 @@ import com.ari.drup.baseDark
 import com.ari.drup.data.FirebaseManager
 import com.ari.drup.mainAccent
 import com.ari.drup.mainLight
+import com.ari.drup.notification.scheduleNotificationAt
 import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.Screen
@@ -59,7 +64,9 @@ import com.ari.drup.ui.components.avatars
 import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.launch
+import java.util.Date
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -67,6 +74,7 @@ import kotlin.math.sin
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun HomeScreen(
+    context: Context,
     onboardingViewModel: OnboardingViewModel,
     homeScreenViewModel: HomeScreenViewModel,
     mainChatViewModel: MainChatViewModel,
@@ -80,10 +88,10 @@ fun HomeScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-                Row(
+            Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = modifier.padding(vertical = 10.dp)
-                ) {
+                    modifier = modifier.padding(vertical = 25.dp)
+            ) {
                     Image(
                         painterResource(avatars[onboardingViewModel.currUser!!.avatar]),
                         contentDescription = null,
@@ -99,12 +107,19 @@ fun HomeScreen(
                         modifier = Modifier.padding(horizontal = 20.dp),
                         fontSize = 18.sp
                     )
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = {
+                    navHostController.navigate(Screen.notification.route)
+                }) {
+                    Icon(Icons.Default.Notifications,
+                        contentDescription = "")
+                }
             }
         },
         containerColor = Color.Black
     ) {  innerPadding->
         Box(modifier = Modifier
-            .padding()
+            .padding(top=10.dp)
             .fillMaxSize(),
             contentAlignment = Alignment.Center
         ){
@@ -167,6 +182,8 @@ fun HomeScreen(
                             mainChatViewModel.selectChat(null)
                             mainChatViewModel.clearChats()
                         }
+                        val twoHoursLater = System.currentTimeMillis() + 2 * 60 * 60 * 1000
+                        scheduleNotificationAt(context, Timestamp(Date(twoHoursLater)))
 
                     }
                 }
@@ -231,4 +248,5 @@ fun StreakPrev(
 @Preview
 @Composable
 private fun HomeScreenPrev() {
+//    HomeScreen()
 }

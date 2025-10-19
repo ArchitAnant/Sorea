@@ -1,6 +1,7 @@
 package com.ari.drup.ui.screens.onboarding
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -51,6 +52,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ari.drup.data.User
+import com.ari.drup.mainAccent
+import com.ari.drup.mainLight
 import com.ari.drup.regular_font
 import com.ari.drup.ui.components.AvatarSelector
 import com.ari.drup.ui.components.DatePickerModal
@@ -63,9 +66,11 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterUserScreen(
+    checkUsername:(String)-> Boolean,
     onRegisterClick: (User) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var usernameState = remember { mutableStateOf(false) }
     var username by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
@@ -83,7 +88,7 @@ fun RegisterUserScreen(
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "",
-                        tint = Color.White,
+                        tint = mainLight,
                         modifier = modifier
                             .padding(top = 30.dp, start = 30.dp)
                             .clickable {
@@ -104,7 +109,7 @@ fun RegisterUserScreen(
                         else -> "Add Username"
                     },
                     fontFamily = regular_font,
-                    color = Color.White,
+                    color = mainLight,
                     fontSize = 30.sp,
                     modifier = modifier.padding(top = 30.dp, start = 20.dp)
                 )
@@ -122,13 +127,34 @@ fun RegisterUserScreen(
             ) {
                 Text(
                     text = "Personal Information like Name, Email, Age and Gender are just for registration, It will not be visible on the platform.",
-                    color = Color.White.copy(0.5f),
+                    color = mainLight.copy(0.7f),
                     fontFamily = regular_font,
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
                     fontSize = 12.sp
                 )
-                ForwardButton({
-                    if (screenCount==0 && username.isNotEmpty()) {
+                ForwardButton(
+                    if (screenCount>0){
+                        mainLight
+                    } else {
+                        if (!usernameState.value){
+                            mainLight//.copy(0.5f)
+                        }
+                        else {
+                            mainLight
+                        }
+                    },
+                    if (screenCount>0){
+                        true
+                    } else {
+                        if (!usernameState.value && username.isNotEmpty() ){
+                            false
+                        }
+                        else {
+                            true
+                        }
+                    },
+                    {
+                    if (screenCount==0 && username.isNotEmpty() && usernameState.value) {
                         screenCount++;
                     }
                     else if (screenCount==1 && name.isNotEmpty()) {
@@ -165,40 +191,50 @@ fun RegisterUserScreen(
                         }
                     }
 
-                })
+                }
+                )
             }
         },
         containerColor = Color.Black,
     ) { innerPadding ->
         Box(modifier= Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (screenCount<=1) {
-                OnboardTextField(
-                    when (screenCount) {
-                        0 -> username
-                        1 -> name
+                Column(modifier = modifier.padding(innerPadding)) {
+                    OnboardTextField(
+                        when (screenCount) {
+                            0 -> username
+                            1 -> name
 //                        2 -> gender
 //                    4 -> avatarId.toString()
-                        else -> username
-                    },
-                    {
-                        if (screenCount == 0) {
-                            username = it
-                        }
-                        if (screenCount == 1) {
-                            name = it
-                        }
-//                        if (screenCount == 2) {
-//                            gender = it
-//                        }
+                            else -> username
+                        },
+                        {
+                            if (screenCount == 0) {
+                                username = it
+                                usernameState.value = checkUsername(it)
+                                Log.d("username",usernameState.value.toString())
+                            }
+                            if (screenCount == 1) {
+                                name = it
+                            }
 
-                    },
-                    when (screenCount) {
-                        0 -> "Enter your username"
-                        1 -> "Enter your name"
-                        else -> "Enter your username"
-                    },
-                    modifier = Modifier.padding(innerPadding)
-                )
+                        },
+                        when (screenCount) {
+                            0 -> "Enter your username"
+                            1 -> "Enter your name"
+                            else -> "Enter your username"
+                        },
+//                        modifier = Modifier.padding(innerPadding)
+                    )
+                    if (screenCount == 0 && username.isNotEmpty() && !usernameState.value) {
+                        Text(
+                            text = "Username already exists",
+                            color = Color.Red,
+                            fontFamily = regular_font,
+                            modifier = Modifier.padding(start = 5.dp, top = 5.dp)
+                        )
+                    }
+                }
             }
             else if (screenCount==2){
                 GenderSelection({
@@ -292,18 +328,18 @@ fun GenderSelection(
                 shape = RoundedCornerShape(25.dp),
                 border = BorderStroke(
                     2.dp,
-                    if (isSelected) Color.White else Color.White.copy(alpha = 0.4f)
+                    if (isSelected) mainAccent else mainLight.copy(alpha = 0.4f)
                 ),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    containerColor = if (isSelected) Color.White.copy(alpha = 0.2f) else Color.Transparent,
-                    contentColor = Color.White
+                    containerColor = if (isSelected) mainAccent.copy(alpha = 0.2f) else Color.Transparent,
+                    contentColor = mainAccent
                 )
             ) {
                 Text(
                     text = option,
                     fontFamily = regular_font,
                     fontSize = 18.sp,
-                    color = if (isSelected) Color.White else Color.White.copy(alpha = 0.7f)
+                    color = if (isSelected) mainLight else mainLight.copy(alpha = 0.7f)
                 )
             }
         }
@@ -331,15 +367,15 @@ fun OnboardTextField(
         },
         modifier = modifier.fillMaxWidth(0.85f),
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Color.White,
+            focusedTextColor = mainLight,
             unfocusedTextColor = Color.Transparent,
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
-            focusedLabelColor = Color.White,
-            focusedIndicatorColor = Color.White,
-            unfocusedIndicatorColor = Color.White.copy(0.5f),
-            unfocusedLeadingIconColor = Color.White,
-            focusedLeadingIconColor = Color.White,
+            focusedLabelColor = mainLight,
+            focusedIndicatorColor = mainLight,
+            unfocusedIndicatorColor = mainAccent,
+            unfocusedLeadingIconColor = mainAccent,
+            focusedLeadingIconColor = mainLight,
 
             ),
         textStyle = TextStyle(
@@ -351,6 +387,8 @@ fun OnboardTextField(
 
 @Composable
 fun ForwardButton(
+    color: Color,
+    enabled : Boolean,
     onForwardClick : () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -361,7 +399,8 @@ fun ForwardButton(
         shape = CircleShape,
         modifier = Modifier.size(90.dp),
         contentPadding = PaddingValues(0.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+        colors = ButtonDefaults.buttonColors(containerColor = color),
+        enabled = enabled
     ) {
         Icon(
             Icons.AutoMirrored.Filled.ArrowForward,
@@ -378,6 +417,8 @@ fun ForwardButton(
 @Preview
 @Composable
 private fun RegisterUserScreenPrev() {
-//    RegisterUserScreen()//OnboardingViewModel(rememberNavController()))
+    RegisterUserScreen({
+        true
+    },{})//OnboardingViewModel(rememberNavController()))
 //    AddUsername("",{})
 }

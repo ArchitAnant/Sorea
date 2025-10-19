@@ -10,6 +10,7 @@ import com.ari.drup.data.mainchat.AzureClient
 import com.ari.drup.data.mainchat.MessDao
 import com.ari.drup.data.mainchat.AzureQuery
 import com.ari.drup.data.mainchat.Response
+import com.ari.drup.notification.scheduleNotificationAt
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.mapNotNull
@@ -21,7 +22,6 @@ import kotlin.collections.mapNotNull
 
 class MainChatViewModel(
     private val onboardingViewModel: OnboardingViewModel,
-    private val homeScreenViewModel: HomeScreenViewModel,
     private val firebaseManager: FirebaseManager
 ): ViewModel() {
 
