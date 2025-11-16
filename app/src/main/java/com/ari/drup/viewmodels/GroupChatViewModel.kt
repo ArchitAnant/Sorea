@@ -11,21 +11,26 @@ import com.ari.drup.data.community.Community
 import com.ari.drup.data.FirebaseManager
 import com.ari.drup.data.community.Messages
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.collection.ImmutableSortedMap.Builder.emptyMap
 //import com.ari.drup.data.community.ChatWebSocket
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.collections.emptyMap
 
 const val SERVER_URL = "wss://websocket-web-server-1.onrender.com"
 
 class GroupChatViewModel(
-    private val onboardingViewModel: OnboardingViewModel,
+    val onboardingViewModel: OnboardingViewModel,
     private val firebaseManager: FirebaseManager
 ) : ViewModel(){
 
     private var chatWebSocket: ChatWebSocket? = null
     private val _activeCommunities = MutableStateFlow(mutableStateOf(listOf<Community>()))
     val activeCommunities = _activeCommunities.asStateFlow()
+
+    private val _currUsers = MutableStateFlow(mutableStateOf(emptyMap<String, String>()))
+    val currUsers = _currUsers.asStateFlow()
 
     init {
         fillActiveCommunities()
@@ -66,16 +71,6 @@ class GroupChatViewModel(
         _messages.value = current.copy(messages = updatedList.sortedBy { it.timestamp })
     }
 
-    fun checkUserInCommunity(): Boolean{
-        if (selectedCommunity.value!=null){
-            selectedCommunity.value!!.users.forEach { map->
-                if (map.values.toList()[0]==onboardingViewModel.currentUserEmail){
-                    return true
-                }
-            }
-        }
-        return false
-    }
 
     fun joinRoom(roomId: String) {
         // Disconnect previous socket if switching rooms
@@ -122,4 +117,36 @@ class GroupChatViewModel(
             fillActiveCommunities()
         }
     }
+
+    suspend fun fillCurrUsers(communityName: String) {
+        _currUsers.value.value = firebaseManager.getChatRoomUsers(communityName)
+    }
+
+    fun getUsername(email: String): String {
+        if (currUsers.value.value.isNotEmpty()){
+            if(currUsers.value.value.keys.contains(email)){
+                return currUsers.value.value[email]!!
+            }
+        }
+        return "Unknown"
+    }
+
+    fun checkUserInCommunity(email:String): Boolean{
+        if (currUsers.value.value.isNotEmpty()){
+            if(currUsers.value.value.keys.contains(email)){
+                return true
+            }
+        }
+        return false
+
+    }
+
+    fun addUserToCommunity(communityName: String,email:String,uname : String){
+        viewModelScope.launch {
+            firebaseManager.addUserToCommunity(communityName, email, uname)
+            fillCurrUsers(communityName)
+        }
+    }
+
+
 }

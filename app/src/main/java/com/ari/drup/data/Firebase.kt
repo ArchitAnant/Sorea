@@ -11,6 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.getField
 import com.google.type.DateTime
 import kotlinx.coroutines.tasks.await
 import kotlin.collections.mapOf
@@ -30,6 +31,69 @@ class FirebaseManager {
             false
         }
     }
+
+    suspend fun getChatRoomUsers(communityName: String): Map<String, String> {
+        return try {
+            val document = db.collection("communities")
+                .document(communityName)
+                .get()
+                .await()
+
+            if (!document.exists()) {
+                Log.e("Firestore", "Document does not exist")
+                return emptyMap()
+            }
+
+            // Firestore stores "users" as List<Map<String, String>>
+            val usersList = document.get("users") as? List<Map<String, String>>
+            if (usersList == null || usersList.isEmpty()) {
+                Log.e("Firestore", "Users list empty")
+                return emptyMap()
+            }
+
+            usersList[0]   // return the first map
+
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error fetching chat users", e)
+            emptyMap()
+        }
+    }
+
+    suspend fun addUserToCommunity(communityName: String, email: String, uname: String) {
+        try {
+            val documentRef = db.collection("communities").document(communityName)
+
+            val snapshot = documentRef.get().await()
+            if (!snapshot.exists()) {
+                Log.e("Firestore", "Community does not exist: $communityName")
+                return
+            }
+
+            // Fetch users list
+            val usersList = snapshot.get("users") as? List<Map<String, String>>
+                ?: listOf(emptyMap())
+
+            // The map at index 0
+            val firstMap = usersList.getOrNull(0)?.toMutableMap() ?: mutableMapOf()
+
+            // Add/update entry
+            firstMap[email] = uname
+
+            // Put this map back at index 0
+            val updatedList = listOf(firstMap)
+
+            // Upload back to Firestore
+            documentRef.update("users", updatedList).await()
+
+            Log.d("Firestore", "Added/Updated user: $email -> $uname")
+
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error adding user to community", e)
+        }
+    }
+
+
+
 
 
     suspend fun registerNewUser(newUser : User,email : String): Boolean{

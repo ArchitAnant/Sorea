@@ -1,6 +1,7 @@
 package com.ari.drup.data.community
 
 data class Chat(
+    val email: String = "",
     val userId: String = "",
     val text: String = "",
     val timestamp: String = "",
