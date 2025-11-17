@@ -85,6 +85,7 @@ import com.ari.drup.ui.components.ChatSoreaButton
 import com.ari.drup.ui.components.FriendList
 import com.ari.drup.ui.components.SignOutButton
 import com.ari.drup.ui.components.avatars
+import com.ari.drup.ui.theme.LocalAppDimens
 import com.ari.drup.viewmodels.OnboardingViewModel
 import com.ari.drup.viewmodels.ProfilePageViewModel
 import kotlinx.coroutines.launch
@@ -101,6 +102,7 @@ fun ProfileScreen(
     onAddFriendClick:()-> Unit,
     onSignOut:()-> Unit
 ) {
+    val dimens = LocalAppDimens.current
     var user = profilePageViewModel.user!!
     var expanded by remember { mutableStateOf(false) }
     var selectedLevel by remember { mutableIntStateOf(user.visibility) }
@@ -110,6 +112,7 @@ fun ProfileScreen(
     val friends = profilePageViewModel.friendList.collectAsState()
 
     Scaffold (
+        contentWindowInsets = WindowInsets.statusBars,
         snackbarHost = {
             SnackbarHost(hostState = snackbarHostState)
         },
@@ -117,7 +120,8 @@ fun ProfileScreen(
             Row(
                 verticalAlignment = Alignment.Top,
                 modifier = modifier
-//                    .padding(WindowInsets.statusBars.add(WindowInsets(top = 20.dp)).asPaddingValues())
+                    .padding(top= dimens.paddingMedium)
+                    .padding(horizontal = 10.dp)
             ){
                 Text(
                     text = "Profile",

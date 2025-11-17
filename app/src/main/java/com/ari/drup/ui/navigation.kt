@@ -165,12 +165,6 @@ fun NavGraph (
             },vm,uiController,modifier)
         }
         composable(route= Screen.notification.route) {
-            val temp1 = Notifications("ari_archit")
-            val temp2 = Notifications("ari_")
-            val temp3 = Notifications("ariiii")
-            val temp4 = Notifications("nahhh")
-            val notificationList = remember { mutableStateListOf(temp1, temp2, temp3, temp4) }
-
             NotificationScreen(
                 notificationViewModel,vm.currUser!!.username,vm.currentUserEmail!!,modifier
             )

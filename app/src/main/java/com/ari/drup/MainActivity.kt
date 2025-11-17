@@ -17,7 +17,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -35,7 +39,10 @@ import com.ari.drup.notification.cancelAllTestNotifications
 import com.ari.drup.notification.createNotificationChannel
 import com.ari.drup.ui.NavGraph
 import com.ari.drup.ui.Screen
+import com.ari.drup.ui.theme.CompactDimens
 import com.ari.drup.ui.theme.DrupTheme
+import com.ari.drup.ui.theme.ExpandedDimens
+import com.ari.drup.ui.theme.LocalAppDimens
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.GroupChatViewModel
 import com.ari.drup.viewmodels.HomeScreenViewModel
@@ -46,6 +53,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     @SuppressLint("ViewModelConstructorInComposable")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,6 +65,12 @@ class MainActivity : ComponentActivity() {
         val firebaseManager = FirebaseManager()
         val realtimeManager = RealtimeManager()
         setContent {
+            val windowSizeClass = calculateWindowSizeClass(this)
+            val dimensions = when (windowSizeClass.widthSizeClass) {
+                WindowWidthSizeClass.Compact -> CompactDimens
+                else -> ExpandedDimens
+            }
+            CompositionLocalProvider(LocalAppDimens provides dimensions) {
 
             DrupTheme {
                 val navHostController = rememberNavController()
@@ -67,25 +81,7 @@ class MainActivity : ComponentActivity() {
                 val profilePageViewModel = ProfilePageViewModel(firebaseManager,vm)
                 val notificationViewModel = NotificationViewModel(realtimeManager,firebaseManager)
 
-//                val topBarColor by vm.topBarColor.collectAsState()
-
-                // Remember system UI controller
                 val systemUiController = rememberSystemUiController()
-
-//                val targetRoute = remember { mutableStateOf(intent.getStringExtra("targetRoute") ?: Screen.mainChatScreen.route) }
-
-                // Navigate once the NavController is ready
-//                LaunchedEffect(targetRoute.value) {
-//                    // Only navigate if it's not the start destination
-//                    if (targetRoute.value != Screen.mainChatScreen.route) {
-//                        navHostController.navigate(targetRoute.value) {
-//                            popUpTo(navHostController.graph.startDestinationId) { inclusive = false }
-//                        }
-//                    }
-//                }
-//                LaunchedEffect(Unit) {
-//                    cancelAllTestNotifications(this@MainActivity)
-//                }
 
                 Scaffold(modifier = Modifier
                     .background(Color.Black)
@@ -108,6 +104,7 @@ class MainActivity : ComponentActivity() {
                 }
 
             }
+                }
         }
     }
 }

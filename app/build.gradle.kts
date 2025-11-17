@@ -109,5 +109,7 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.32.0")
 
+    implementation("androidx.compose.material3:material3-window-size-class:1.4.0")
+
 
 }

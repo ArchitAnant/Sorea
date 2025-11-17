@@ -15,7 +15,10 @@ import com.google.firebase.database.collection.ImmutableSortedMap.Builder.emptyM
 //import com.ari.drup.data.community.ChatWebSocket
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import kotlin.collections.emptyMap
 
 const val SERVER_URL = "wss://websocket-web-server-1.onrender.com"
@@ -36,27 +39,23 @@ class GroupChatViewModel(
         fillActiveCommunities()
     }
 
-    private val _selectedCommunity = MutableStateFlow(mutableStateOf<Community?>(null))
-    val selectedCommunity = _selectedCommunity.asStateFlow().value
+    private val _selectedCommunity = MutableStateFlow<Community?>(null)
+    val selectedCommunity = _selectedCommunity.asStateFlow() // Use asStateFlow for read-only access
 
-    fun setCommunity(community: Community){
-        _selectedCommunity.value.value = community
-    }
-
-    private var _chatLoading = MutableStateFlow(mutableStateOf(false))
+    private var _chatLoading = MutableStateFlow(false)
     val chatLoading = _chatLoading.asStateFlow()
 
-    private val _chatBox = MutableStateFlow(mutableStateOf(""))
+    private val _chatBox = MutableStateFlow("")
     val chatBox = _chatBox.asStateFlow()
     var chatTitle = mutableStateOf("")
 
-
-    fun setChatBox(message: String){
-        _chatBox.value.value = message
+    fun setChatBox(message: String) {
+        _chatBox.value = message // Simpler update
     }
 
+
     private val _messages = MutableStateFlow(Messages())
-    val messages = _messages
+    val messages = _messages.asStateFlow()
 
 
 
@@ -65,17 +64,18 @@ class GroupChatViewModel(
     }
 
     fun addChat(chat: Chat) {
-        val current = _messages.value
-        val updatedList = current.messages.toMutableList()
-        updatedList.add(chat)
-        _messages.value = current.copy(messages = updatedList.sortedBy { it.timestamp })
+        _messages.update { currentMessagesObject ->
+            val updatedList = listOf(chat) + currentMessagesObject.messages
+            // Return a new Messages object with the updated list
+            currentMessagesObject.copy(messages = updatedList)
+        }
     }
 
 
     fun joinRoom(roomId: String) {
         // Disconnect previous socket if switching rooms
         chatWebSocket?.disconnect()
-        _chatBox.value.value = ""
+        _chatBox.value = ""
         _messages.value = Messages()
 
         chatWebSocket = ChatWebSocket(
@@ -87,7 +87,7 @@ class GroupChatViewModel(
     }
 
     fun setChatLoading(loading: Boolean){
-        _chatLoading.value.value = loading
+        _chatLoading.value = loading
     }
 
     fun fetchChats() {
@@ -95,11 +95,17 @@ class GroupChatViewModel(
     }
 
     fun sendMessage() {
-        if (chatBox.value.value.isNotBlank()) {
+        if (chatBox.value.isNotBlank()) {
             chatWebSocket?.sendMessage(
-                text = chatBox.value.value,
+                text = chatBox.value,
                 userId = onboardingViewModel.currentUserEmail!!
             )
+            addChat(Chat(
+                onboardingViewModel.currentUserEmail!!,
+                onboardingViewModel.currentUserEmail!!,
+                chatBox.value,
+                OffsetDateTime.now(ZoneOffset.UTC).toString()
+            ))
             setChatBox("") // clear the input box
         }
     }

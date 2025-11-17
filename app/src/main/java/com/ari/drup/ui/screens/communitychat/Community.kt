@@ -41,15 +41,17 @@ import com.ari.drup.data.community.Community
 import com.ari.drup.mainLight
 import com.ari.drup.regular_font
 import com.ari.drup.ui.components.CreateChannelButton
+import com.ari.drup.ui.theme.LocalAppDimens
 import com.ari.drup.viewmodels.GroupChatViewModel
 
 @Composable
 fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, String) -> Unit,onCreateClick: () -> Unit, modifier: Modifier = Modifier) {
     val activeComms = groupChatViewModel.activeCommunities.collectAsState().value
     val context = LocalContext.current
+    val dimens = LocalAppDimens.current
     Column(modifier = modifier
         .fillMaxSize()
-        .padding(start = 10.dp, end = 10.dp)) {
+        .padding(start = 10.dp, top=dimens.paddingMedium,end = 10.dp)) {
 
         Text(
             text = "Community",

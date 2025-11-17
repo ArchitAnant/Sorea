@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,6 +64,7 @@ import com.ari.drup.semibold_font
 import com.ari.drup.ui.Screen
 import com.ari.drup.ui.components.ChatSoreaButton
 import com.ari.drup.ui.components.avatars
+import com.ari.drup.ui.theme.LocalAppDimens
 import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.ari.drup.viewmodels.OnboardingViewModel
@@ -81,16 +85,20 @@ fun HomeScreen(
     navHostController : NavHostController,
     modifier: Modifier = Modifier
 ) {
+    val dimens = LocalAppDimens.current
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val today = homeScreenViewModel.today.collectAsState().value
 
     Scaffold(
+        contentWindowInsets = WindowInsets.statusBars,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = modifier
+
+                    .padding(dimens.paddingMedium)
             ) {
                     Image(
                         painterResource(avatars[onboardingViewModel.currUser!!.avatar]),
@@ -119,7 +127,7 @@ fun HomeScreen(
         containerColor = Color.Black
     ) {  innerPadding->
         Box(modifier = Modifier
-            .padding(top=10.dp)
+            .padding(top=dimens.paddingMedium)
             .fillMaxSize()
             ,
             contentAlignment = Alignment.Center

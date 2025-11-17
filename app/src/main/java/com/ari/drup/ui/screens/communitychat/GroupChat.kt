@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -80,6 +81,7 @@ fun ChatScreen(chatId: String,
     var message = groupChatViewModel.chatBox.collectAsState().value
     val chatStateLoading = groupChatViewModel.chatLoading.collectAsState().value
     val scope = rememberCoroutineScope()
+    val listState = rememberLazyListState()
     LaunchedEffect(Unit) {
         scope.launch {
             groupChatViewModel.fillCurrUsers(chatTitle)
@@ -122,7 +124,7 @@ fun ChatScreen(chatId: String,
                     )
                 ) {
                     ChatBox(
-                        message.value,
+                        message,
                         onMessageChange = { groupChatViewModel.setChatBox(it) }
                     )
 
@@ -130,7 +132,7 @@ fun ChatScreen(chatId: String,
 
                     Button(
                         onClick = {
-                            if (message.value.isNotBlank()) {
+                            if (message.isNotBlank()) {
                                 groupChatViewModel.sendMessage()
                             }
                         },
@@ -209,10 +211,10 @@ fun ChatScreen(chatId: String,
                 .padding(horizontal = 10.dp)
 
         ) {
-            if (currentChats.messages.isEmpty() && chatStateLoading.value){
+            if (currentChats.messages.isEmpty() && chatStateLoading){
                 CircularProgressIndicator(color = Color.White, modifier = Modifier.align(Alignment.Center))
             }
-            else if (currentChats.messages.isEmpty() && !chatStateLoading.value){
+            else if (currentChats.messages.isEmpty()){
                 Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
                         text = "Be the first one!",
@@ -227,18 +229,31 @@ fun ChatScreen(chatId: String,
                 }
             }
             else {
+
+
+                LaunchedEffect(currentChats.messages.size) {
+                    // Scroll to last message whenever a new message appears
+                    if (currentChats.messages.isNotEmpty()) {
+                        listState.scrollToItem(currentChats.messages.size - 1)
+                    }
+                }
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
+                    state = listState,
                     contentPadding = innerPadding,
-                    reverseLayout = true
                 ) {
-                    items(currentChats.messages) { chat ->
+                    items(currentChats.messages.reversed()) { chat ->
                         var uname by remember { mutableStateOf<String?>(null) }
+
                         LaunchedEffect(chat.email) {
                             uname = groupChatViewModel.getUsername(chat.email)
                         }
 
-                        ChatItem( uname ?: "...", chat = chat,chat.email==groupChatViewModel.onboardingViewModel.currentUserEmail)
+                        ChatItem(
+                            uname ?: "...",
+                            chat = chat,
+                            own = chat.email == groupChatViewModel.onboardingViewModel.currentUserEmail
+                        )
                     }
                 }
             }
