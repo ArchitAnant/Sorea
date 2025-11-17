@@ -24,11 +24,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -113,7 +117,7 @@ fun ProfileScreen(
             Row(
                 verticalAlignment = Alignment.Top,
                 modifier = modifier
-                    .padding(start = 10.dp, top = 40.dp, end = 10.dp)
+//                    .padding(WindowInsets.statusBars.add(WindowInsets(top = 20.dp)).asPaddingValues())
             ){
                 Text(
                     text = "Profile",
@@ -128,12 +132,12 @@ fun ProfileScreen(
         containerColor = Color.Black
     ){ innerPadding->
         Column(modifier= Modifier
-            .padding(innerPadding)
-            .padding(start = 10.dp, top = 40.dp, end = 10.dp)
+            .padding(  innerPadding)
+            .padding(start = 10.dp, end = 10.dp)
             .fillMaxSize(), verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            NameAndAvatar(user.name,user.username,user.avatar,modifier)
+            NameAndAvatar(user.name,user.username,user.avatar,Modifier.padding(vertical = 20.dp))
             Spacer(modifier = Modifier.height(40.dp))
             ProfileSelection(selectedLevel,{
                 scope.launch {

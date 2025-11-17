@@ -137,7 +137,7 @@ fun ChatSoreaButton(onButtonClick: () -> Unit) {
                 color = Color.White,
                 fontFamily = regular_font,
                 fontSize = 15.sp,
-                modifier = Modifier.padding(horizontal = 5.dp)
+                modifier = Modifier.padding(horizontal = 5.dp).weight(2f)
             )
 
             Icon(

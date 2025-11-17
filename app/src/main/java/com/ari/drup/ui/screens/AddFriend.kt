@@ -9,10 +9,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -65,13 +69,18 @@ fun AddFriendScreen(profilePageViewModel: ProfilePageViewModel, modifier: Modifi
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(WindowInsets.statusBars.asPaddingValues())
+                    .padding(start = 40.dp, top = 10.dp) // your custom padding
+            ) {
                 Text(
                     text = "Add Friend",
                     fontFamily = regular_font,
                     color = mainLight,
                     fontSize = 30.sp,
-                    modifier = modifier.padding(top = 30.dp, start = 40.dp)
+                    modifier = modifier.padding(top = 30.dp)
                 )
             }
         },
@@ -92,8 +101,15 @@ fun AddFriendScreen(profilePageViewModel: ProfilePageViewModel, modifier: Modifi
                     }
                 onAddFriendClick()
                 }
+
             },
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 40.dp).padding(bottom = 20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(WindowInsets.navigationBars.asPaddingValues())
+                    .padding(horizontal = 40.dp)
+                    .padding(bottom = 20.dp)
+//                    .padding(horizontal = 40.dp, bottom = 20.dp),
+                        ,
                 colors = ButtonDefaults.buttonColors(containerColor = baseDark)
             ) {
                 Row(

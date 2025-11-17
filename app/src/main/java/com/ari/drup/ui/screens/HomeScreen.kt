@@ -90,7 +90,7 @@ fun HomeScreen(
         topBar = {
             Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = modifier.padding(vertical = 25.dp)
+                    modifier = modifier
             ) {
                     Image(
                         painterResource(avatars[onboardingViewModel.currUser!!.avatar]),
@@ -120,12 +120,13 @@ fun HomeScreen(
     ) {  innerPadding->
         Box(modifier = Modifier
             .padding(top=10.dp)
-            .fillMaxSize(),
+            .fillMaxSize()
+            ,
             contentAlignment = Alignment.Center
         ){
             Column(
                 modifier = Modifier
-                    .padding(innerPadding)
+                    .padding(top = innerPadding.calculateTopPadding())
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally

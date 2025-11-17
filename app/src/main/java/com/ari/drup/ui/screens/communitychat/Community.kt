@@ -49,7 +49,7 @@ fun CommunityPage(groupChatViewModel: GroupChatViewModel,onOpenClick: (String, S
     val context = LocalContext.current
     Column(modifier = modifier
         .fillMaxSize()
-        .padding(start = 10.dp, top = 40.dp, end = 10.dp)) {
+        .padding(start = 10.dp, end = 10.dp)) {
 
         Text(
             text = "Community",
