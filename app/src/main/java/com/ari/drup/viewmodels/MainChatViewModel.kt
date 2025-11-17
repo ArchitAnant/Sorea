@@ -11,6 +11,7 @@ import com.ari.drup.data.mainchat.MessDao
 import com.ari.drup.data.mainchat.AzureQuery
 import com.ari.drup.data.mainchat.Response
 import com.ari.drup.notification.scheduleNotificationAt
+import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.mapNotNull
@@ -34,6 +35,31 @@ class MainChatViewModel(
     private val _chatState = MutableStateFlow<ApiState<Response>>(ApiState.Idle)
     val chatState  = _chatState.asStateFlow()
 
+    private val _suggestions = MutableStateFlow<List<String>>(emptyList())
+    val suggestions = _suggestions.asStateFlow()
+
+    fun clearSuggestions(){
+        _suggestions.value = emptyList()
+    }
+
+    fun fetchSuggestions(){
+        viewModelScope.launch {
+            _suggestions.value = firebaseManager.getSuggestions(onboardingViewModel.currentUserEmail!!)
+            Log.d("Suggestions",_suggestions.value.toString())
+        }
+    }
+    private var suggestionListener: ListenerRegistration? = null
+
+    fun observeSuggestions() {
+        val email = onboardingViewModel.currentUserEmail!!
+
+        suggestionListener?.remove()  // remove old listener if any
+
+        suggestionListener = firebaseManager.observeSuggestions(email) { list ->
+            _suggestions.value = list
+            Log.d("Suggestions", "Updated: $list")
+        }
+    }
 
 
     fun resetResponseState() {
@@ -41,6 +67,7 @@ class MainChatViewModel(
     }
     fun clearChats(){
         _chats.value = mutableListOf()
+        suggestionListener?.remove()
     }
 
     fun observeChat(){

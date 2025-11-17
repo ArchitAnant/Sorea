@@ -8,6 +8,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
@@ -19,6 +20,43 @@ import kotlin.collections.mapOf
 class FirebaseManager {
     private val db = Firebase.firestore
     private var allUsernames = emptyList<String>()
+
+    suspend fun getSuggestions(email:String):List<String>{
+        val document = db.collection("users")
+            .document(email)
+            .collection("suggestions")
+            .document("latest")
+            .get()
+            .await()
+
+        if (document.exists()){
+            return document.get("suggestions") as List<String>
+        }
+        else{
+            return emptyList()
+        }
+    }
+    fun observeSuggestions(email: String, onChange: (List<String>) -> Unit): ListenerRegistration {
+        return db.collection("users")
+            .document(email)
+            .collection("suggestions")
+            .document("latest")
+            .addSnapshotListener { snapshot, error ->
+
+                if (error != null) {
+                    Log.e("Firebase", "Suggestion listener error", error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null && snapshot.exists()) {
+                    val list = snapshot.get("suggestions") as? List<String> ?: emptyList()
+                    onChange(list)
+                } else {
+                    onChange(emptyList())
+                }
+            }
+    }
+
     suspend fun checkRegisteredUsers(email: String): Boolean{
         return try {
             val document = db.collection("users")

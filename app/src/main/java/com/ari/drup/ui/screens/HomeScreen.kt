@@ -186,6 +186,7 @@ fun HomeScreen(
                         if (!today.isNullOrEmpty()) {
                             mainChatViewModel.selectChat(today)
                             mainChatViewModel.fetchChats()
+                            mainChatViewModel.observeSuggestions()
                         }
                         else {
                             mainChatViewModel.selectChat(null)

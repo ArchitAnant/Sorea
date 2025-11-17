@@ -155,6 +155,7 @@ fun HolderScreen(
                     }
                     cancelAllScheduledNotifications(context)
                     cancelAllTestNotifications(context)
+                    mainChatViewModel.clearSuggestions()
                 }
             }
         }

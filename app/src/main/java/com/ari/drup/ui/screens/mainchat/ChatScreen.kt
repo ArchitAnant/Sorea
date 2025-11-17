@@ -75,6 +75,7 @@ import com.ari.drup.regular_font
 import com.ari.drup.semibold_font
 import com.ari.drup.ui.components.ChatBox
 import com.ari.drup.ui.components.ChatPrev
+import com.ari.drup.ui.components.MainChatTips
 import com.ari.drup.viewmodels.HomeScreenViewModel
 import com.ari.drup.viewmodels.MainChatViewModel
 import com.google.firebase.Timestamp
@@ -119,6 +120,8 @@ fun MainChatScreen(
     val chats by mainChatViewModel.chats.collectAsState()
     val responseState = mainChatViewModel.chatState.collectAsState().value
     val listState = rememberLazyListState()
+    val suggestions = mainChatViewModel.suggestions.collectAsState().value
+
 
     // Dynamic messages for waiting state
     val messages = listOf(
@@ -354,8 +357,8 @@ fun MainChatScreen(
 
                     Column(modifier= Modifier.align(Alignment.TopEnd)) {
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = innerPadding,
+                            modifier = Modifier.weight(2f),
+//                            contentPadding = innerPadding,
                             reverseLayout = true
                         ) {
                             items(chats) { item ->
@@ -372,6 +375,8 @@ fun MainChatScreen(
                             }
 
                         }
+                        MainChatTips(suggestions,modifier.padding(bottom = innerPadding.calculateBottomPadding()))
+                        Log.d("ChatItem", suggestions.size.toString())
                         LaunchedEffect(responseState) {
                             when (responseState) {
                                 is ApiState.Success -> {
