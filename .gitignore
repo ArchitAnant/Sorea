@@ -85,3 +85,5 @@ mybro-a1ea5-firebase-adminsdk-xxxx-xxxxxxxx.json
 *.json
 !host.json
 *.jks
+android/app/debug
+android/app/release
