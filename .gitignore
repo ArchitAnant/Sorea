@@ -84,3 +84,4 @@ serviceAccountKey.json
 mybro-a1ea5-firebase-adminsdk-xxxx-xxxxxxxx.json
 *.json
 !host.json
+*.jks

@@ -1,6 +1,6 @@
-[submodule "MyBro"]
-	path = MyBro
-	url = https://github.com/Jit-Roy/MyBro
 [submodule "websocket_web_server"]
 	path = websocket_web_server
 	url = https://github.com/Aritrahutait07/websocket_web_server.git
+[submodule "sorea-main-chat"]
+	path = sorea-main-chat
+	url = https://github.com/ArchitAnant/sorea-main-chat.git
